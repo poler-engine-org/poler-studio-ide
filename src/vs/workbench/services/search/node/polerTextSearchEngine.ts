@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { URI } from '../../../../base/common/uri.js';
 import { Progress } from '../../../../platform/progress/common/progress.js';
@@ -62,8 +64,40 @@ export class PolerTextSearchEngine {
 			return { limitHit: false };
 		}
 
-		const folderPath = options.folderOptions.folder.fsPath;
-		const args: string[] = [folderPath, '--grep', query.pattern, '--grep-json'];
+		let scanFolder = options.folderOptions.folder.fsPath;
+		let extensionsFilter: string | undefined;
+
+		if (options.folderOptions.includes && options.folderOptions.includes.length) {
+			for (const inc of options.folderOptions.includes) {
+				const extMatch = inc.match(/\*\.([a-zA-Z0-9_,{}]+)$/);
+				if (extMatch) {
+					extensionsFilter = extMatch[1].replace(/[{}]/g, '');
+				}
+
+				const parts = inc.replace(/^\*+\/?/, '').split('/');
+				const cleanParts: string[] = [];
+				for (const part of parts) {
+					if (part.includes('*') || part.includes('?')) {
+						break;
+					}
+					cleanParts.push(part);
+				}
+				if (cleanParts.length) {
+					const subPath = path.join(...cleanParts);
+					const candidate1 = path.join(scanFolder, subPath);
+					if (fs.existsSync(candidate1) && fs.statSync(candidate1).isDirectory()) {
+						scanFolder = candidate1;
+						break;
+					}
+				}
+			}
+		}
+
+		const args: string[] = [scanFolder, '--grep', query.pattern, '--grep-json'];
+
+		if (extensionsFilter) {
+			args.push('--extensions', extensionsFilter);
+		}
 
 		if (!query.isCaseSensitive) {
 			args.push('--grep-i');
@@ -82,21 +116,27 @@ export class PolerTextSearchEngine {
 			args.push('--grep-max-count', `${options.maxResults}`);
 		}
 
-		// Include hidden files according to options
-		args.push('--grep-hidden');
-
 		this.outputChannel.appendLine(`[POLER ENGINE v0.93.0] Spawning: ${polerPath} ${args.slice(1).join(' ')}`);
 
 		return new Promise((resolve) => {
 			let isCancelled = false;
 			const proc = cp.spawn(polerPath, args, {
-				cwd: folderPath,
+				cwd: scanFolder,
 				maxBuffer: 64 * 1024 * 1024,
 				windowsHide: true,
 			});
 
+			const timeoutTimer = setTimeout(() => {
+				if (!proc.killed) {
+					this.outputChannel.appendLine(`[POLER ENGINE] Timeout (>10s) on folder: ${scanFolder}. Aborting.`);
+					try { proc.kill(); } catch {}
+					resolve(null);
+				}
+			}, 10000);
+
 			token.onCancellationRequested(() => {
 				isCancelled = true;
+				clearTimeout(timeoutTimer);
 				try {
 					proc.kill();
 				} catch {
@@ -121,6 +161,7 @@ export class PolerTextSearchEngine {
 			});
 
 			proc.on('close', (code) => {
+				clearTimeout(timeoutTimer);
 				if (isCancelled) {
 					resolve({ limitHit: false });
 					return;
