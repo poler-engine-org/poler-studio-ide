@@ -103,7 +103,7 @@ jobs:
         shell: pwsh
         run: |
           $buildDir = Resolve-Path "../VSCode-win32-x64"
-          $zipPath = Join-Path (Resolve-Path "..") "POLER-Studio-win32-x64.zip"
+          $zipPath = Join-Path (Get-Location) "POLER-Studio-win32-x64.zip"
           Write-Host "Compressing $buildDir into $zipPath ..."
           Compress-Archive -Path "$buildDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
           Get-Item $zipPath | Select-Object Name, Length
@@ -112,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: POLER-Studio-win32-x64
-          path: ../POLER-Studio-win32-x64.zip
+          path: POLER-Studio-win32-x64.zip
           retention-days: 30
 
       - name: Create Release
@@ -132,6 +132,6 @@ jobs:
               - Темы оформления: Breeze Dark (POLER) & Neon Resonance (Ψ)
               - Полное отключение телеметрии
             - **Binary:** Portable standalone дистрибутив `POLER Studio.exe` для Windows x64.
-          files: ../POLER-Studio-win32-x64.zip
+          files: POLER-Studio-win32-x64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
