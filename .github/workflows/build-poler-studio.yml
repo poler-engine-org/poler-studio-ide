@@ -8,8 +8,11 @@ on:
     paths:
       - 'src/**'
       - 'extensions/**'
+      - 'engine/**'
+      - 'resources/bin/**'
       - 'product.json'
       - 'build/**'
+      - 'build/poler-studio/**'
       - '.github/workflows/build-poler-studio.yml'
 
 permissions:
@@ -97,7 +100,7 @@ jobs:
           }
           npm run gulp vscode-win32-x64
 
-      - name: Embed POLER Native Engines
+      - name: Embed POLER Native Engines & Sovereign Extension Stubs
         shell: pwsh
         run: |
           $destBin = "../VSCode-win32-x64/resources/bin"
@@ -105,52 +108,23 @@ jobs:
           if (Test-Path "resources/bin") {
             Copy-Item "resources/bin/*" -Destination $destBin -Recurse -Force
           }
-          Write-Host "Provisioning sovereign Copilot SDK stub & dotenv..."
-          $sdkDest = "../VSCode-win32-x64/resources/app/extensions/copilot/node_modules/@github/copilot/sdk"
-          New-Item -ItemType Directory -Path $sdkDest -Force | Out-Null
-          @'
-export class AutoModeSessionManager { constructor(opts) {} }
-export class LocalSessionManager {
-  constructor(opts) {}
-  async listSessions() { return []; }
-  async getSessions() { return []; }
-  async getSession() { return null; }
-  async deleteSession() {}
-}
-export class NoopTelemetryService {}
-export function createLocalFeatureFlagServiceCreator() { return () => ({}); }
-export async function getAvailableModels(authInfo) { return []; }
-export const logger = { setLogWriter: () => {} };
-export const internal = { LocalSessionManager, NoopTelemetryService };
-'@ | Set-Content (Join-Path $sdkDest "index.js") -Encoding utf8
-
-          $copilotPkg = "../VSCode-win32-x64/resources/app/extensions/copilot/node_modules/@github/copilot/package.json"
-          @'
-{
-  "name": "@github/copilot",
-  "version": "1.0.73",
-  "type": "module",
-  "exports": {
-    "./sdk": "./sdk/index.js"
-  }
-}
-'@ | Set-Content $copilotPkg -Encoding utf8
-
-          $dotenvDest = "../VSCode-win32-x64/resources/app/extensions/copilot/node_modules/dotenv"
-          New-Item -ItemType Directory -Path $dotenvDest -Force | Out-Null
-          @'
-module.exports = { config: () => ({ parsed: {} }) };
-'@ | Set-Content (Join-Path $dotenvDest "index.js") -Encoding utf8
-          @'
-{
-  "name": "dotenv",
-  "version": "16.4.5",
-  "main": "index.js"
-}
-'@ | Set-Content (Join-Path $dotenvDest "package.json") -Encoding utf8
+          Write-Host "Provisioning sovereign Copilot SDK stub & dotenv (build-time generation)..."
+          node build/poler-studio/embed-stubs.mjs "../VSCode-win32-x64"
 
           Write-Host "Listing output executable files in ../VSCode-win32-x64:"
           Get-ChildItem -Path "../VSCode-win32-x64" -Filter "*.exe" | Select-Object Name, Length
+
+      - name: Recompute product.json Checksums (isPure invariant)
+        shell: pwsh
+        run: |
+          Write-Host "Recomputing Base64 SHA-256 checksums for out/vs entry points..."
+          node build/poler-studio/update-checksums.mjs "../VSCode-win32-x64"
+
+      - name: Verify Distribution Integrity (checksums gate)
+        shell: pwsh
+        run: |
+          Write-Host "Verifying product.json checksums against packaged out/vs files..."
+          node build/poler-studio/update-checksums.mjs "../VSCode-win32-x64" --verify
 
       - name: Create Archive
         shell: pwsh

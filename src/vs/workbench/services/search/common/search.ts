@@ -133,6 +133,13 @@ export interface ITextQueryProps<U extends UriComponents> extends ICommonQueryPr
 	maxFileSize?: number;
 	surroundingContext?: number;
 
+	/**
+	 * POLER Studio: route this query through the sovereign semantic search
+	 * gateway (see `search.polerSemanticSearch`). Serialized with the query
+	 * so the search utility process can honor the setting.
+	 */
+	polerSemanticSearch?: boolean;
+
 	userDisabledExcludesAndIgnoreFiles?: boolean;
 }
 
@@ -143,6 +150,13 @@ export interface IAITextQueryProps<U extends UriComponents> extends ICommonQuery
 	previewOptions?: ITextSearchPreviewOptions;
 	maxFileSize?: number;
 	surroundingContext?: number;
+
+	/**
+	 * POLER Studio: present on both text query variants so the shared
+	 * TextSearchManager can read it off the query union; AI text queries
+	 * route through their own provider and ignore the flag.
+	 */
+	polerSemanticSearch?: boolean;
 
 	userDisabledExcludesAndIgnoreFiles?: boolean;
 }

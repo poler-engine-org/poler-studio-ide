@@ -28,6 +28,25 @@ export class RipgrepTextSearchEngine {
 	constructor(private outputChannel: IOutputChannel, private readonly _numThreads?: number | undefined) { }
 
 	provideTextSearchResults(query: TextSearchQuery2, options: TextSearchProviderOptions, progress: Progress<TextSearchResult2>, token: CancellationToken): Promise<TextSearchComplete2> {
+		// POLER Studio: try the sovereign semantic gateway first (ranked
+		// ContextAnchors with enclosing_scope blocks), then the multi-root
+		// exact-grep gateway (one engine process, rayon across roots).
+		// Both gracefully return null when the engine cannot serve the
+		// request, in which case the per-folder ripgrep path below runs.
+		if (PolerTextSearchEngine.isAvailable()) {
+			const polerEngine = new PolerTextSearchEngine(this.outputChannel);
+			if (options.polerSemanticSearch) {
+				const semanticResult = polerEngine.provideSemanticSearchResults(query, options, progress, token, this._numThreads);
+				return semanticResult.then(polerSemantic => {
+					if (polerSemantic !== null) {
+						return polerSemantic;
+					}
+					return this.provideMultiRootGrepThenPerFolder(query, options, polerEngine, progress, token);
+				});
+			}
+			return this.provideMultiRootGrepThenPerFolder(query, options, polerEngine, progress, token);
+		}
+
 		return Promise.all(options.folderOptions.map(folderOption => {
 			const extendedOptions: RipgrepTextSearchOptions = {
 				folderOptions: folderOption,
@@ -49,6 +68,35 @@ export class RipgrepTextSearchEngine {
 			}
 			return complete;
 		}));
+	}
+
+	private async provideMultiRootGrepThenPerFolder(query: TextSearchQuery2, options: TextSearchProviderOptions, polerEngine: PolerTextSearchEngine, progress: Progress<TextSearchResult2>, token: CancellationToken): Promise<TextSearchComplete2> {
+		const multiRootResult = await polerEngine.provideTextSearchResultsMultiRoot(query, options, progress, token, this._numThreads);
+		if (multiRootResult !== null) {
+			return multiRootResult;
+		}
+
+		const results = await Promise.all(options.folderOptions.map(folderOption => {
+			const extendedOptions: RipgrepTextSearchOptions = {
+				folderOptions: folderOption,
+				numThreads: this._numThreads,
+				maxResults: options.maxResults,
+				previewOptions: options.previewOptions,
+				maxFileSize: options.maxFileSize,
+				surroundingContext: options.surroundingContext
+			};
+			return this.provideTextSearchResultsWithRgOptions(query, extendedOptions, progress, token);
+		}));
+
+		const complete: TextSearchComplete2 = {
+			// todo: get this to actually check
+			limitHit: results.some(complete => !!complete && complete.limitHit)
+		};
+		const messages = results.flatMap(complete => complete?.message ?? []);
+		if (messages.length) {
+			complete.message = messages;
+		}
+		return complete;
 	}
 
 	async provideTextSearchResultsWithRgOptions(query: TextSearchQuery2, options: RipgrepTextSearchOptions, progress: Progress<TextSearchResult2>, token: CancellationToken): Promise<TextSearchComplete2> {

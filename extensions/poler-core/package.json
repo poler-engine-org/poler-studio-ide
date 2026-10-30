@@ -50,6 +50,46 @@
         "command": "poler.calcExpression",
         "title": "POLER: Розрахувати вираз (Константи СІ-2019 / Фізика)",
         "category": "POLER"
+      },
+      {
+        "command": "poler.editCore.openLargeFile",
+        "title": "POLER: Piece-Table — відкрити великий файл нативно (O(1), >50MB)",
+        "category": "POLER"
+      },
+      {
+        "command": "poler.editCore.gotoLine",
+        "title": "POLER: Piece-Table — перехід до рядка / байтового зсуву",
+        "category": "POLER",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "poler.editCore.findInFile",
+        "title": "POLER: Piece-Table — нативний пошук у файлі (Aho-Corasick)",
+        "category": "POLER",
+        "icon": "$(search)"
+      },
+      {
+        "command": "poler.editCore.nextWindow",
+        "title": "POLER: Piece-Table — наступне вікно рядків",
+        "category": "POLER",
+        "icon": "$(chevron-down)"
+      },
+      {
+        "command": "poler.editCore.prevWindow",
+        "title": "POLER: Piece-Table — попереднє вікно рядків",
+        "category": "POLER",
+        "icon": "$(chevron-up)"
+      },
+      {
+        "command": "poler.editCore.saveNative",
+        "title": "POLER: Piece-Table — зберегти нативні правки на диск",
+        "category": "POLER",
+        "icon": "$(save)"
+      },
+      {
+        "command": "poler.copilot.useLocalModel",
+        "title": "POLER: Copilot — переключити джерело моделі (Cloud ↔ Local)",
+        "category": "POLER"
       }
     ],
     "menus": {
@@ -100,6 +140,18 @@
         "command": "poler.resonanceSearch",
         "key": "alt+s",
         "mac": "alt+s"
+      },
+      {
+        "command": "poler.editCore.findInFile",
+        "key": "ctrl+alt+f",
+        "mac": "cmd+alt+f",
+        "when": "editorTextFocus && resourceScheme == poler-edit"
+      },
+      {
+        "command": "poler.editCore.gotoLine",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g",
+        "when": "editorTextFocus && resourceScheme == poler-edit"
       }
     ],
     "viewsContainers": {
@@ -142,6 +194,46 @@
           "enum": ["psi", "poler", "hits", "field"],
           "default": "psi",
           "description": "Режим квантового резонансу для пошуку."
+        },
+        "poler.editCore.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Увімкнути нативний сервіс poler-edit-core (Zero-Copy Piece-Table) для великих файлів."
+        },
+        "poler.editCore.largeFileThresholdMB": {
+          "type": "number",
+          "default": 50,
+          "description": "Поріг (МБ), починаючи з якого файл обслуговується нативною Piece-Table замість повного завантаження в пам'ять Monaco."
+        },
+        "poler.editCore.windowLines": {
+          "type": "number",
+          "default": 2048,
+          "description": "Кількість рядків в одному вікні віртуального документа poler-edit."
+        },
+        "poler.editCore.promptForLargeFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Пропонувати відкрити великі файли через нативну Piece-Table при першому відкритті."
+        },
+        "poler.copilot.modelSource": {
+          "type": "string",
+          "enum": ["copilot", "local"],
+          "default": "copilot",
+          "enumDescriptions": [
+            "GitHub Copilot Cloud (звичайний хмарний інференс)",
+            "Локальний резонансний інференс POLER (.pqw/.pqc, без Python і GPU)"
+          ],
+          "description": "Джерело моделі для AI-асистента: хмара GitHub Copilot або локальний шлюз POLER."
+        },
+        "poler.copilot.localModelPath": {
+          "type": "string",
+          "default": "",
+          "description": "Шлях до локальної моделі .pqw (GLM-декодер poler-engine). Порожньо — використовується квантово-резонансний режим --llm quantum."
+        },
+        "poler.copilot.gatewayPort": {
+          "type": "number",
+          "default": 8770,
+          "description": "Порт локального OpenAI-сумісного шлюзу POLER (127.0.0.1) для BYOK Custom Endpoint."
         }
       }
     }

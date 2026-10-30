@@ -18,6 +18,7 @@ import { crypto } from './node/crypto';
 import { TIMED_OUT_ERROR, USER_CANCELLATION_ERROR } from './common/errors';
 import { GitHubSignInProvider, isSignInProvider } from './flows';
 import { getEnterpriseUriKey } from './common/enterpriseStorage';
+import { getServicePersonalAccessToken, isUnauthorizedError } from './common/patFallback';
 
 // `vscode` doesn't publicly export `UriComponents`, so derive the exact shape from `Uri.from`.
 type UriComponents = Parameters<typeof vscode.Uri.from>[0];
@@ -732,18 +733,38 @@ export class GitHubSessionEngine implements vscode.AuthenticationProvider, vscod
 			// For GitHub scope list, order doesn't matter so we immediately sort the scopes
 			const scopesStr = [...session.scopes].sort().join(' ');
 			let userInfo: IGitHubUserInfo | undefined;
+			// POLER Studio (Stage C.1): the OAuth token carried by the stored
+			// session may be stale or revoked (401/403 from state.vscdb
+			// validation). Retry once with the service Personal Access Token
+			// (`Authorization: Bearer <GITHUB_TOKEN>` upstream) before
+			// dropping the session, so the editor survives token rotation.
+			let accessToken = session.accessToken;
+			let patFallbackApplied = false;
 			if (!session.account) {
 				try {
-					userInfo = await this._githubServer.getUserInfo(session.accessToken);
+					userInfo = await this._githubServer.getUserInfo(accessToken);
 					this._logger.info(`Verified session with the following scopes: ${scopesStr}`);
 				} catch (e) {
-					if (e.message === 'Unauthorized') {
-						return undefined;
+					if (isUnauthorizedError(e)) {
+						const serviceToken = getServicePersonalAccessToken();
+						if (serviceToken && serviceToken !== accessToken) {
+							try {
+								userInfo = await this._githubServer.getUserInfo(serviceToken);
+								accessToken = serviceToken;
+								patFallbackApplied = true;
+								this._logger.info(`OAuth session rejected (${e.message ?? 'Unauthorized'}); authorized the session through the service PAT fallback.`);
+							} catch (patError) {
+								this._logger.error(`Service PAT fallback also rejected: ${patError.message ?? patError}`);
+								return undefined;
+							}
+						} else {
+							return undefined;
+						}
 					}
 				}
 			}
 
-			this._logger.trace(`Read the following session from the keychain with the following scopes: ${scopesStr}`);
+			this._logger.trace(`Read the following session from the keychain with the following scopes: ${scopesStr}${patFallbackApplied ? ' (service PAT fallback)' : ''}`);
 			scopesSeen.add(scopesStr);
 
 			let accountId: string;
@@ -770,7 +791,7 @@ export class GitHubSessionEngine implements vscode.AuthenticationProvider, vscod
 				// we set this to session.scopes to maintain the original order of the scopes requested
 				// by the extension that called getSession()
 				scopes: session.scopes,
-				accessToken: session.accessToken,
+				accessToken,
 				authorizationServer: session.authorizationServer
 					? vscode.Uri.from(session.authorizationServer)
 					: vscode.Uri.joinPath(this._githubServer.getFallbackBaseUri(), '/login/oauth')

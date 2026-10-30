@@ -95,6 +95,11 @@ export interface ITextQueryBuilderOptions<U extends UriComponents = URI> extends
 	fileEncoding?: string;
 	surroundingContext?: number;
 	isSmartCase?: boolean;
+	/**
+	 * POLER Studio: force the sovereign semantic search gateway for this
+	 * query. Falls back to `search.polerSemanticSearch` when unset.
+	 */
+	polerSemanticSearch?: boolean;
 	notebookSearchConfig?: {
 		includeMarkupInput: boolean;
 		includeMarkupPreview: boolean;
@@ -135,6 +140,7 @@ export class QueryBuilder {
 			previewOptions: options.previewOptions,
 			maxFileSize: options.maxFileSize,
 			surroundingContext: options.surroundingContext,
+			polerSemanticSearch: options.polerSemanticSearch ?? !!this.configurationService.getValue<boolean>('search.polerSemanticSearch'),
 			userDisabledExcludesAndIgnoreFiles: options.disregardExcludeSettings && options.disregardIgnoreFiles,
 
 		};

@@ -362,6 +362,13 @@ struct Cli {
     #[arg(long = "grep-json", requires = "grep")]
     grep_json: bool,
 
+    /// Дополнительный корень grep-поиска (multi-root workspace IDE).
+    /// Повторяемый: `poler-engine root1 --grep root2 --grep-root root3`.
+    /// Все корни сканируются в ОДНОМ процессе параллельно через rayon —
+    /// без N процессов на N корней и без общего пула потоков на каждый.
+    #[arg(long = "grep-root", value_name = "PATH", requires = "grep", action = clap::ArgAction::Append)]
+    grep_roots: Vec<PathBuf>,
+
     // ---------- poler_disk_harvester: суб-секундный сбор диска ----------
 
     /// HARVEST: корни обхода (1+; каталоги, репозитории или файлы).
@@ -2516,13 +2523,29 @@ fn run(cli: Cli) -> ExitCode {
         } else {
             nr::GrepOutput::Content
         };
-        // Корни поиска: позиционный PATH (может повторяться неявно —
-        // несколько аргументов clap не поддерживает, но PATH может быть
-        // каталогом) либо текущий каталог.
-        let roots: Vec<std::path::PathBuf> = match cli.path.clone() {
-            Some(p) => vec![p],
-            None => vec![std::path::PathBuf::from(".")],
-        };
+        // Корни поиска: позиционный PATH + повторяемые --grep-root
+        // (multi-root workspace IDE: один процесс, rayon-параллелизм
+        // по всем корням). PATH отсутствует → первый --grep-root или ".".
+        let mut roots: Vec<std::path::PathBuf> = Vec::with_capacity(1 + cli.grep_roots.len());
+        if let Some(p) = cli.path.clone() {
+            roots.push(p);
+        }
+        for extra in &cli.grep_roots {
+            roots.push(extra.clone());
+        }
+        if roots.is_empty() {
+            roots.push(std::path::PathBuf::from("."));
+        }
+        // Дедупликация канонических корней: повторный корень не сканируется
+        // дважды (IDE может добавить и корень, и его подпапку-подпроект).
+        let mut seen: Vec<std::path::PathBuf> = Vec::with_capacity(roots.len());
+        for r in roots {
+            let canonical = std::fs::canonicalize(&r).unwrap_or(r);
+            if !seen.contains(&canonical) {
+                seen.push(canonical);
+            }
+        }
+        let roots = seen;
         // Архивы: пароль резолвится ДО параллельного прогона — промпт
         // на TTY нельзя звать из rayon-воркеров.
         let archive_password = if cli.archives {

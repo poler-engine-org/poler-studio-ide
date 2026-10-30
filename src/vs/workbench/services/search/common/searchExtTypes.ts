@@ -213,6 +213,15 @@ export interface TextSearchProviderOptions {
 	 * Number of lines of context to include before and after each match.
 	 */
 	surroundingContext: number;
+
+	/**
+	 * POLER Studio: serve this query through the sovereign semantic search
+	 * gateway (`poler-engine -q … --format ai-json`). Results are ranked
+	 * ContextAnchors whose `enclosing_scope` carries whole logical blocks
+	 * (functions/scenes), so AI consumers such as Copilot @workspace receive
+	 * self-sufficient context instead of scattered lines.
+	 */
+	polerSemanticSearch?: boolean;
 }
 
 

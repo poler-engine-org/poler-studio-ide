@@ -179,6 +179,7 @@ export class TextSearchManager {
 			maxResults: this.query.maxResults ?? DEFAULT_MAX_SEARCH_RESULTS,
 			previewOptions: this.query.previewOptions ?? DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS,
 			surroundingContext: this.query.surroundingContext ?? 0,
+			polerSemanticSearch: this.query.polerSemanticSearch ?? false,
 		};
 
 		let result;

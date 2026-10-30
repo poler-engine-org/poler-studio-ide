@@ -70,6 +70,14 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 			description: nls.localize('search.ripgrep.maxThreads', "Number of threads to use for searching. When set to 0, the engine automatically determines this value."),
 			default: 0
 		},
+		'search.polerSemanticSearch': {
+			type: 'boolean',
+			default: false,
+			markdownDescription: nls.localize({
+				key: 'search.polerSemanticSearch',
+				comment: ['{0} will be replaced by "POLER Engine"']
+			}, "Enable the sovereign {0} semantic search gateway: text queries run through `poler-engine -q <pattern> --format ai-json` and return ranked ContextAnchors with whole `enclosing_scope` logical blocks (functions/scenes) instead of scattered lines. Copilot @workspace context benefits from self-sufficient blocks, reducing LLM hallucinations. Falls back to the exact POLER grep gateway (and then ripgrep) when the engine is unavailable or the pattern is a regular expression.", 'POLER Engine')
+		},
 		'search.followSymlinks': {
 			type: 'boolean',
 			description: nls.localize('search.followSymlinks', "Controls whether to follow symlinks while searching."),

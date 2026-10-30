@@ -1,19 +1,59 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import * as path from 'path';
 import { EngineBridge } from './engineBridge';
 import { CausalViewProvider, QuickFeedViewProvider } from './causalView';
 import { ScientificStudioPanel } from './scientificStudioView';
+import { PolerEditCoreService } from './editCoreService';
+import { buildPolerEditUri, decodePolerEditUri, PolerEditCoreLargeFileProvider } from './largeFileProvider';
+import { PolerCopilotGateway, resolveServiceToken } from './copilotGateway';
 
 export function activate(context: vscode.ExtensionContext) {
     const bridge = EngineBridge.instance();
     const causalProvider = new CausalViewProvider();
     const quickFeedProvider = new QuickFeedViewProvider();
+    const editCoreService = new PolerEditCoreService();
+    const largeFileProvider = new PolerEditCoreLargeFileProvider(editCoreService);
+    const copilotGateway = new PolerCopilotGateway(bridge);
+    context.subscriptions.push(editCoreService, copilotGateway);
 
     // 1. Регистрация представлений в Activity Bar (POLER Studio)
     context.subscriptions.push(
         vscode.window.registerTreeDataProvider('poler.causalView', causalProvider),
         vscode.window.registerTreeDataProvider('poler.quickFeedView', quickFeedProvider)
     );
+
+    // 1b. POLER Edit Core: виртуальна схема poler-edit — миттєве відкриття
+    // великих файлів (>50 MB) через нативну Piece-Table poler-edit-core.
+    context.subscriptions.push(
+        vscode.workspace.registerTextDocumentContentProvider(PolerEditCoreService.SCHEME, largeFileProvider)
+    );
+
+    // 1c. Підказка для великих файлів: звичайний відкритий файл понад
+    // поріг пропонується перемкнути на нативний Piece-Table.
+    if (editCoreService.isEnabled()) {
+        const promptLargeFiles = vscode.workspace.getConfiguration('poler').get<boolean>('editCore.promptForLargeFiles', true);
+        if (promptLargeFiles) {
+            const opened = new Set<string>();
+            context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(document => {
+                if (document.uri.scheme !== 'file' || opened.has(document.uri.fsPath)) {
+                    return;
+                }
+                opened.add(document.uri.fsPath);
+                if (PolerEditCoreService.isLargeFile(document.uri.fsPath)) {
+                    const sizeMb = (fs.statSync(document.uri.fsPath).size / (1024 * 1024)).toFixed(0);
+                    vscode.window.showInformationMessage(
+                        `POLER: файл ${path.basename(document.uri.fsPath)} (${sizeMb} MB) — відкрити через нативну Piece-Table (миттєво, без завантаження в пам'ять)?`,
+                        'Відкрити нативно (O(1))'
+                    ).then(choice => {
+                        if (choice) {
+                            vscode.commands.executeCommand('poler.editCore.openLargeFile', document.uri);
+                        }
+                    });
+                }
+            }));
+        }
+    }
 
     // 2. Статус-бар POLER O(1)
     const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -230,7 +270,209 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // 9. Нативний Reference Provider на базі poler-engine impact
+    // 10. POLER Edit Core: команди нативної Piece-Table для великих файлів
+    context.subscriptions.push(
+        vscode.commands.registerCommand('poler.editCore.openLargeFile', async (uri?: vscode.Uri) => {
+            let filePath: string | undefined;
+            if (uri && uri.scheme === 'file') {
+                filePath = uri.fsPath;
+            } else {
+                const picked = await vscode.window.showOpenDialog({
+                    openLabel: 'Відкрити нативно (Piece-Table)',
+                    canSelectMany: false
+                });
+                filePath = picked?.[0]?.fsPath;
+            }
+            if (!filePath) {
+                return;
+            }
+            if (!PolerEditCoreService.isLargeFile(filePath)) {
+                const threshold = PolerEditCoreService.largeFileThresholdBytes();
+                const openAny = await vscode.window.showInformationMessage(
+                    `POLER: файл менше порога (${(threshold / (1024 * 1024)).toFixed(0)} MB) — відкрити нативно все одно?`,
+                    'Так, відкрити', 'Скасувати'
+                );
+                if (openAny !== 'Так, відкрити') {
+                    return;
+                }
+            }
+            try {
+                const doc = await editCoreService.openDocument(filePath);
+                await vscode.window.showTextDocument(buildPolerEditUri(filePath, 0));
+                editCoreService.indexInBackground(doc);
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`POLER Piece-Table: ${err.message ?? String(err)}`);
+            }
+        }),
+
+        vscode.commands.registerCommand('poler.editCore.gotoLine', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== PolerEditCoreService.SCHEME) {
+                vscode.window.showWarningMessage('POLER: команда працює у вікні poler-edit (нативний Piece-Table).');
+                return;
+            }
+            const { filePath } = decodePolerEditUri(editor.document.uri);
+            const doc = editCoreService.getDocument(filePath);
+            if (!doc) {
+                return;
+            }
+            const input = await vscode.window.showInputBox({
+                prompt: 'POLER Piece-Table: перехід до рядка (1-based) або зміщення в байтах (наприклад 0x1F400 / 128000)',
+                placeHolder: '12345'
+            });
+            if (!input) {
+                return;
+            }
+            let realLine: number;
+            if (/^0x[0-9a-fA-F]+$/.test(input) || /^\d{6,}$/.test(input)) {
+                // Byte offset form: LSP-міст байт → рядок/колонка
+                const byte = /^0x/.test(input) ? parseInt(input, 16) : parseInt(input, 10);
+                const position = await doc.offsetToPosition(byte);
+                realLine = position.line;
+            } else {
+                realLine = Math.max(0, (parseInt(input, 10) || 1) - 1);
+            }
+            const uri = await largeFileProvider.revealLine(doc, realLine);
+            await vscode.window.showTextDocument(uri);
+        }),
+
+        vscode.commands.registerCommand('poler.editCore.nextWindow', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== PolerEditCoreService.SCHEME) {
+                return;
+            }
+            const { filePath, windowStart } = decodePolerEditUri(editor.document.uri);
+            const doc = editCoreService.getDocument(filePath);
+            if (!doc) {
+                return;
+            }
+            const uri = buildPolerEditUri(filePath, windowStart + 2048);
+            editCoreService.notifyChanged(uri);
+            await vscode.window.showTextDocument(uri);
+        }),
+
+        vscode.commands.registerCommand('poler.editCore.prevWindow', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== PolerEditCoreService.SCHEME) {
+                return;
+            }
+            const { filePath, windowStart } = decodePolerEditUri(editor.document.uri);
+            const doc = editCoreService.getDocument(filePath);
+            if (!doc) {
+                return;
+            }
+            const uri = buildPolerEditUri(filePath, Math.max(0, windowStart - 2048));
+            editCoreService.notifyChanged(uri);
+            await vscode.window.showTextDocument(uri);
+        }),
+
+        vscode.commands.registerCommand('poler.editCore.findInFile', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== PolerEditCoreService.SCHEME) {
+                vscode.window.showWarningMessage('POLER: команда працює у вікні poler-edit (нативний Piece-Table).');
+                return;
+            }
+            const { filePath } = decodePolerEditUri(editor.document.uri);
+            const doc = editCoreService.getDocument(filePath);
+            if (!doc) {
+                return;
+            }
+            const query = await vscode.window.showInputBox({
+                prompt: 'POLER Piece-Table: нативний пошук у файлі (Aho-Corasick поверх mmap, без завантаження в памʼять)',
+                placeHolder: 'ERROR|WARN|токен...'
+            });
+            if (!query) {
+                return;
+            }
+            const stats = await doc.search(query, true, 200);
+            if (stats.hits.length === 0) {
+                vscode.window.showInformationMessage(`POLER Piece-Table: збігів для "${query}" не знайдено (${stats.elapsedMs} мс, ${stats.scannedBytes} байт просканово).`);
+                return;
+            }
+            interface HitItem extends vscode.QuickPickItem {
+                hitLine: number;
+            }
+            const items: HitItem[] = stats.hits.map(hit => ({
+                label: `$(search) рядок ${hit.line + 1}:${hit.col + 1} (байт 0x${hit.byte.toString(16)})`,
+                description: `довжина ${hit.len}`,
+                hitLine: hit.line
+            }));
+            if (stats.truncated) {
+                items.push({ label: `$(warning) показано 200 із більшої кількості збігів`, hitLine: -1 });
+            }
+            const selected = await vscode.window.showQuickPick(items, {
+                placeHolder: `POLER Piece-Table: ${stats.hits.length} збігів за ${stats.elapsedMs} мс`
+            });
+            if (selected && selected.hitLine >= 0) {
+                const uri = await largeFileProvider.revealLine(doc, selected.hitLine);
+                await vscode.window.showTextDocument(uri);
+            }
+        }),
+
+        vscode.commands.registerCommand('poler.editCore.saveNative', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.uri.scheme !== PolerEditCoreService.SCHEME) {
+                return;
+            }
+            const { filePath } = decodePolerEditUri(editor.document.uri);
+            const doc = editCoreService.getDocument(filePath);
+            if (!doc) {
+                return;
+            }
+            const stats = await doc.stats();
+            if (stats.edited || stats.undoDepth > 0 || stats.redoDepth > 0) {
+                const bytes = await doc.save();
+                vscode.window.showInformationMessage(`POLER Piece-Table: збережено ${bytes} байт у ${path.basename(filePath)}.`);
+            } else {
+                vscode.window.showInformationMessage('POLER Piece-Table: немає нативних правок — файл на диску вже актуальний.');
+            }
+        })
+    );
+
+    // 11. POLER Copilot Gateway: переключатель джерела моделі
+    // (GitHub Copilot Cloud ↔ локальний резонансний інференс POLER).
+    context.subscriptions.push(
+        vscode.commands.registerCommand('poler.copilot.useLocalModel', async () => {
+            const config = vscode.workspace.getConfiguration('poler');
+            const current = config.get<'copilot' | 'local'>('copilot.modelSource', 'copilot');
+            const target = current === 'local' ? 'copilot' : 'local';
+
+            if (target === 'local') {
+                const modelPath = config.get<string>('copilot.localModelPath', '');
+                if (modelPath && !fs.existsSync(modelPath)) {
+                    const pick = await vscode.window.showWarningMessage(
+                        `POLER: модель ${modelPath} не знайдена — використати квантово-резонансний режим (--llm quantum, без .pqw)?`,
+                        'Так, продовжити', 'Скасувати'
+                    );
+                    if (pick !== 'Так, продовжити') {
+                        return;
+                    }
+                    await config.update('copilot.localModelPath', '', vscode.ConfigurationTarget.Global);
+                }
+                try {
+                    const address = await copilotGateway.start();
+                    await config.update('copilot.modelSource', 'local', vscode.ConfigurationTarget.Global);
+                    const token = resolveServiceToken();
+                    const copy = await vscode.window.showInformationMessage(
+                        `POLER: локальний шлюз запущено (${address}). Джерело моделі: ${copilotGateway.modelId}${token ? ' • PAT fallback активний (Authorization: Bearer <GITHUB_TOKEN>)' : ''}. Скопіювати BYOK Custom Endpoint JSON?`,
+                        'Скопіювати JSON', 'Готово'
+                    );
+                    if (copy === 'Скопіювати JSON') {
+                        await vscode.env.clipboard.writeText(copilotGateway.customEndpointSnippet());
+                        vscode.window.showInformationMessage('POLER: BYOK Custom Endpoint JSON скопійовано в буфер обміну.');
+                    }
+                } catch (err: any) {
+                    vscode.window.showErrorMessage(`POLER: не вдалося запустити локальний шлюз: ${err.message ?? String(err)}`);
+                }
+            } else {
+                await copilotGateway.stop();
+                await config.update('copilot.modelSource', 'copilot', vscode.ConfigurationTarget.Global);
+                vscode.window.showInformationMessage('POLER: джерело моделі повернуто до GitHub Copilot Cloud.');
+            }
+        })
+    );
+
+    // 12. Нативний Reference Provider на базі poler-engine impact
     context.subscriptions.push(
         vscode.languages.registerReferenceProvider({ scheme: 'file' }, {
             async provideReferences(document, position, _context, _token) {
