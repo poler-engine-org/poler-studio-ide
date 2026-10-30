@@ -27,6 +27,16 @@ export class RipgrepTextSearchEngine {
 
 	constructor(private outputChannel: IOutputChannel, private readonly _numThreads?: number | undefined) { }
 
+	/**
+	 * POLER Studio v3: set once the multi-root engine gateway has bailed
+	 * (error OR governor timeout) for this search. The per-folder fallback
+	 * below then runs ripgrep directly — per-folder engine retries would
+	 * rescan the same tree again and multiply the wall-clock latency, which
+	 * is what tripped the Copilot findTextInFiles tool timeout on huge
+	 * (OneDrive-sized) workspaces. One engine attempt per search.
+	 */
+	private _polerExhausted = false;
+
 	provideTextSearchResults(query: TextSearchQuery2, options: TextSearchProviderOptions, progress: Progress<TextSearchResult2>, token: CancellationToken): Promise<TextSearchComplete2> {
 		// POLER Studio: try the sovereign semantic gateway first (ranked
 		// ContextAnchors with enclosing_scope blocks), then the multi-root
@@ -76,6 +86,10 @@ export class RipgrepTextSearchEngine {
 			return multiRootResult;
 		}
 
+		// v3: the sovereign engine had its one attempt (error or governor
+		// timeout) — do not let the per-folder path below spawn it again.
+		this._polerExhausted = true;
+
 		const results = await Promise.all(options.folderOptions.map(folderOption => {
 			const extendedOptions: RipgrepTextSearchOptions = {
 				folderOptions: folderOption,
@@ -111,7 +125,7 @@ export class RipgrepTextSearchEngine {
 			return { limitHit: false };
 		}
 
-		if (PolerTextSearchEngine.isAvailable()) {
+		if (!this._polerExhausted && PolerTextSearchEngine.isAvailable()) {
 			const polerEngine = new PolerTextSearchEngine(this.outputChannel);
 			const polerResult = await polerEngine.provideTextSearchResults(query, options, progress, token);
 			if (polerResult !== null) {

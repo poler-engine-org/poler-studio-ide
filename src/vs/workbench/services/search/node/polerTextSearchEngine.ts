@@ -2,7 +2,19 @@
  *  POLER Studio IDE - Sovereign AI & High-Velocity Text Search Engine
  *  Direct integration of native poler-engine v0.93.0 (Rust, Zig, ASM)
  *
- *  v2 - Copilot @workspace search gateway:
+ *  v3 - latency & parity hardening (post-ae6448c7 field report):
+ *   - ONE engine attempt per search: after the multi-root gateway
+ *     bails, the ripgrep compatibility provider runs directly — the
+ *     per-folder engine retries of v2 could rescan the same tree up to
+ *     three times before ripgrep started, which is what tripped the
+ *     Copilot findTextInFiles tool timeout on huge (OneDrive) trees.
+ *   - Governor: 30s base (+10s per extra workspace root, cap 180s);
+ *     the semantic probe keeps a tight 10s budget so giant trees fail
+ *     fast into the exact grep gateway instead of burning the budget.
+ *   - Exclude-aware root pruning: top-level directories matched by the
+ *     active exclude globs (node_modules, bower_components) are never
+ *     handed to the engine — parity with the ripgrep provider's `-g`
+ *     excludes.
  *   - Multi-Root Workspaces: ONE poler-engine process serves every added
  *     workspace root (`--grep-root` flags, rayon-parallel inside the engine);
  *     engine builds without `--grep-root` transparently fall back to
@@ -95,14 +107,32 @@ interface IPolerSearchResult {
 }
 
 /**
- * Default per-root time budget for the engine governor. Multi-root runs get
- * one extra base unit per additional root (rayon shares one pool inside a
- * single process, so the budget must cover all roots). Override with the
- * POLER_ENGINE_TIMEOUT_MS environment variable.
+ * Default per-root time budget for the engine governor. The engine scans
+ * at ripgrep-class throughput (~2 GiB/s warm on two cores, measured on a
+ * 4.6 GiB C4 corpus), but cold OneDrive/cloud placeholder hydration and
+ * first-run Defender checks on Windows can dominate the wall clock, so
+ * the budget must cover one full cold pass — killing the engine at 10s
+ * only to rescan the same tree with ripgrep doubles the latency for no
+ * gain. Override with the POLER_ENGINE_TIMEOUT_MS environment variable.
  */
-const DEFAULT_TIMEOUT_MS = 10_000;
-const EXTRA_TIMEOUT_PER_ROOT_MS = 5_000;
-const MAX_TIMEOUT_MS = 120_000;
+const DEFAULT_TIMEOUT_MS = 30_000;
+const EXTRA_TIMEOUT_PER_ROOT_MS = 10_000;
+const MAX_TIMEOUT_MS = 180_000;
+
+/**
+ * Tight budget for the semantic probe: the resonant search builds corpus
+ * statistics (measured ~0.05 GiB/s, 32.5s on a 1.5 GiB tree), so on large
+ * workspaces it must fail fast and let the exact grep gateway (with the
+ * full governor budget) take over instead of burning the whole budget.
+ */
+const SEMANTIC_PROBE_TIMEOUT_MS = 10_000;
+
+/**
+ * Cap on the accumulated argv length of one engine invocation: hundreds of
+ * pruned top-level scan units would otherwise exceed the 32 KiB Windows
+ * CreateProcess command-line limit.
+ */
+const MAX_ARGV_LENGTH = 8_192;
 
 /**
  * Upper bound of enclosing-scope lines reported as search context for one
@@ -116,6 +146,8 @@ interface IPolerSpawnResult {
 	stderr: string;
 	code: number | null;
 	cancelled: boolean;
+	/** The governor killed the process (slow scan, not an engine error). */
+	timedOut: boolean;
 }
 
 /**
@@ -185,6 +217,92 @@ function isDirectory(candidate: string): boolean {
 	}
 }
 
+/**
+ * Extract the literal directory-name segment an exclude glob effectively
+ * removes in full. A glob that removes the whole `node_modules` tree under
+ * any parent — `**` around the bare name — reduces to `node_modules`, and
+ * `bower_components` behaves the same. Patterns with several literal
+ * segments (`Документы/Cassiopeia` deep under the root) or wildcard
+ * segments (`*.code-search` anywhere) exclude only a subtree and must NOT
+ * prune a whole top-level directory, so they yield nothing.
+ */
+export function literalPrunedDirName(glob: string): string | undefined {
+	const parts = glob.replace(/\\/g, '/').split('/');
+	const segs: string[] = [];
+	for (const part of parts) {
+		if (!part || part === '**' || part === '*') {
+			continue;
+		}
+		if (/[*?\[{]/.test(part)) {
+			return undefined; // wildcard segment: no whole-directory prune
+		}
+		segs.push(part);
+	}
+	return segs.length === 1 ? segs[0] : undefined;
+}
+
+function collectPrunedDirNames(excludes: readonly unknown[] | undefined): Set<string> {
+	const names = new Set<string>();
+	if (!excludes) {
+		return names;
+	}
+	for (const exclude of excludes) {
+		const pattern = typeof exclude === 'string'
+			? exclude
+			: ((exclude as any)?.pattern as string | undefined);
+		if (typeof pattern !== 'string') {
+			continue;
+		}
+		const dir = literalPrunedDirName(pattern);
+		if (dir) {
+			names.add(dir.toLowerCase());
+		}
+	}
+	return names;
+}
+
+/**
+ * Expand one resolved workspace root into engine scan units, skipping
+ * top-level directories the active excludes remove entirely (e.g.
+ * `node_modules`). Real directories and plain files become scan units —
+ * the engine walks each with the same `.gitignore`/hidden-file semantics
+ * it applies to a bare root, while symlinked directories are skipped
+ * exactly like the engine's own no-follow walk would skip them. Falls
+ * back to the bare root on any failure or an oversized expansion.
+ */
+export function expandRootExcludingPruned(root: string, prunedDirs: ReadonlySet<string>): string[] {
+	if (!prunedDirs.size) {
+		return [root];
+	}
+	let entries: fs.Dirent[];
+	try {
+		entries = fs.readdirSync(root, { withFileTypes: true });
+	} catch {
+		return [root];
+	}
+	const units: string[] = [];
+	let argvLength = root.length;
+	for (const entry of entries) {
+		if (entry.name.startsWith('.')) {
+			continue; // hidden entries are skipped by the engine walk anyway
+		}
+		const isSymlinkDir = entry.isSymbolicLink() && !entry.isFile();
+		if (isSymlinkDir) {
+			continue; // the engine does not follow symlinked directories
+		}
+		if (entry.isDirectory() && prunedDirs.has(entry.name.toLowerCase())) {
+			continue;
+		}
+		const unit = path.join(root, entry.name);
+		argvLength += unit.length + 16;
+		if (argvLength > MAX_ARGV_LENGTH) {
+			return [root]; // too many units for one command line
+		}
+		units.push(unit);
+	}
+	return units.length ? units : [root];
+}
+
 export class PolerTextSearchEngine {
 	public static readonly ENGINE_VERSION = 'v0.93.0';
 
@@ -206,7 +324,9 @@ export class PolerTextSearchEngine {
 		token: CancellationToken
 	): Promise<TextSearchComplete2 | null> {
 		const scanFolder = resolveMultiTierScanFolder(options.folderOptions.folder.fsPath, options.folderOptions.includes);
-		return this.provideTextSearchResultsForRoots(query, [scanFolder], this.resolveExtensionsFilter(options.folderOptions.includes), options, progress, token, options.numThreads);
+		const prunedDirs = collectPrunedDirNames(options.folderOptions.excludes as readonly unknown[] | undefined);
+		const scanUnits = expandRootExcludingPruned(scanFolder, prunedDirs);
+		return this.provideTextSearchResultsForRoots(query, scanUnits, this.resolveExtensionsFilter(options.folderOptions.includes), options, progress, token, options.numThreads, 1);
 	}
 
 	/**
@@ -265,7 +385,25 @@ export class PolerTextSearchEngine {
 			? perFolderFilters[0]
 			: undefined;
 
-		const singleProcess = await this.provideTextSearchResultsForRoots(query, resolvedRoots, extensionsFilter, options, progress, token, numThreads);
+		// Exclude-aware pruning (v3): never hand directories the
+		// active excludes remove entirely (node_modules & friends)
+		// to the engine — parity with the ripgrep `-g` excludes.
+		const prunedDirs = new Set<string>();
+		for (const folderOption of folderOptions) {
+			for (const name of collectPrunedDirNames(folderOption.excludes as readonly unknown[] | undefined)) {
+				prunedDirs.add(name);
+			}
+		}
+		const scanUnits: string[] = [];
+		for (const root of resolvedRoots) {
+			for (const unit of expandRootExcludingPruned(root, prunedDirs)) {
+				if (!scanUnits.includes(unit)) {
+					scanUnits.push(unit);
+				}
+			}
+		}
+
+		const singleProcess = await this.provideTextSearchResultsForRoots(query, scanUnits, extensionsFilter, options, progress, token, numThreads, folderOptions.length);
 		if (singleProcess !== null) {
 			return singleProcess;
 		}
@@ -274,7 +412,7 @@ export class PolerTextSearchEngine {
 		// without --grep-root): retry with parallel per-root spawns.
 		this.outputChannel.appendLine(`[POLER ENGINE] ${PolerTextSearchEngine.ENGINE_VERSION} lacks --grep-root; falling back to ${resolvedRoots.length} parallel per-root scans.`);
 		const perRootResults = await Promise.all(resolvedRoots.map(root =>
-			this.provideTextSearchResultsForRoots(query, [root], options, progress, token, numThreads)
+			this.provideTextSearchResultsForRoots(query, [root], extensionsFilter, options, progress, token, numThreads, folderOptions.length)
 		));
 		if (perRootResults.some(r => r === null)) {
 			// At least one root could not be served — let the
@@ -291,6 +429,11 @@ export class PolerTextSearchEngine {
 	 * scene). Each anchor is reported as a match plus context lines, so
 	 * Copilot's @workspace context sees self-sufficient blocks instead
 	 * of scattered single lines.
+	 *
+	 * v3: the probe runs on a TIGHT budget — the resonant pass builds
+	 * corpus statistics and is an order of magnitude slower than the
+	 * exact grep gateway, so large workspaces fail fast (10s) and let
+	 * the grep gateway (with the full governor budget) take over.
 	 */
 	public async provideSemanticSearchResults(
 		query: TextSearchQuery2,
@@ -348,9 +491,15 @@ export class PolerTextSearchEngine {
 
 			this.outputChannel.appendLine(`[POLER ENGINE ${PolerTextSearchEngine.ENGINE_VERSION}] Semantic search (Causal Nexus / ε-ranking): ${polerPath} ${args.slice(1).join(' ')}`);
 
-			const spawnResult = await this.spawnPoler(polerPath!, args, root, token, this.timeoutFor(1));
+			// v3: tight probe budget — see SEMANTIC_PROBE_TIMEOUT_MS.
+			const probeBudgetMs = Math.min(this.timeoutFor(resolvedRoots.length), SEMANTIC_PROBE_TIMEOUT_MS);
+			const spawnResult = await this.spawnPoler(polerPath!, args, root, token, probeBudgetMs);
 			if (spawnResult.cancelled) {
 				return { limitHit: false } as TextSearchComplete2;
+			}
+			if (spawnResult.timedOut) {
+				this.outputChannel.appendLine(`[POLER ENGINE] Semantic probe exceeded ${probeBudgetMs}ms on ${root}; handing over to the exact grep gateway.`);
+				return null;
 			}
 			if (spawnResult.code !== 0 && !spawnResult.stdout.trim()) {
 				if (spawnResult.stderr.trim()) {
@@ -376,6 +525,10 @@ export class PolerTextSearchEngine {
 
 	/**
 	 * Shared exact-grep engine runner over one or more roots.
+	 *
+	 * v3: `budgetRootCount` sizes the governor by the number of REAL
+	 * workspace roots — exclude-pruned scan units are not separate
+	 * budgets (rayon shares one pool for the whole invocation).
 	 */
 	private async provideTextSearchResultsForRoots(
 		query: TextSearchQuery2,
@@ -384,7 +537,8 @@ export class PolerTextSearchEngine {
 		options: TextSearchProviderOptions,
 		progress: Progress<TextSearchResult2>,
 		token: CancellationToken,
-		numThreads?: number
+		numThreads?: number,
+		budgetRootCount?: number
 	): Promise<TextSearchComplete2 | null> {
 		const polerPath = getPolerEnginePath();
 		if (!polerPath) {
@@ -422,9 +576,19 @@ export class PolerTextSearchEngine {
 
 		this.outputChannel.appendLine(`[POLER ENGINE ${PolerTextSearchEngine.ENGINE_VERSION}] Spawning: ${polerPath} ${args.slice(1).join(' ')}`);
 
-		const spawnResult = await this.spawnPoler(polerPath, args, primaryRoot, token, this.timeoutFor(roots.length));
+		const budgetMs = this.timeoutFor(budgetRootCount ?? roots.length);
+		const spawnResult = await this.spawnPoler(polerPath, args, primaryRoot, token, budgetMs);
 		if (spawnResult.cancelled) {
 			return { limitHit: false };
+		}
+		if (spawnResult.timedOut) {
+			// v3: the governor killed a RUNNING scan (cold cloud
+			// hydration, giant tree). Report it distinctly: the
+			// ripgrep fallback still gets exactly one chance, and
+			// the OS file cache the engine just warmed makes that
+			// pass far cheaper than a blind rescan.
+			this.outputChannel.appendLine(`[POLER ENGINE] Governor timeout (>${budgetMs}ms) while scanning ${roots.length} root(s); handing the query to the ripgrep compatibility provider.`);
+			return null;
 		}
 
 		if (spawnResult.code !== 0 && !spawnResult.stdout.trim()) {
@@ -608,6 +772,7 @@ export class PolerTextSearchEngine {
 	private spawnPoler(polerPath: string, args: string[], cwd: string, token: CancellationToken, timeoutMs: number): Promise<IPolerSpawnResult> {
 		return new Promise((resolve) => {
 			let isCancelled = false;
+			let timedOut = false;
 			let settled = false;
 			const proc = cp.spawn(polerPath, args, {
 				cwd,
@@ -626,9 +791,10 @@ export class PolerTextSearchEngine {
 
 			const timeoutTimer = setTimeout(() => {
 				if (!proc.killed) {
+					timedOut = true;
 					this.outputChannel.appendLine(`[POLER ENGINE] Timeout (>${timeoutMs}ms) on: ${cwd}. Aborting.`);
 					try { proc.kill(); } catch { /* ignore */ }
-					finish({ stdout: '', stderr: `timeout after ${timeoutMs}ms`, code: null, cancelled: false });
+					finish({ stdout: '', stderr: `timeout after ${timeoutMs}ms`, code: null, cancelled: false, timedOut: true });
 				}
 			}, timeoutMs);
 
@@ -653,11 +819,11 @@ export class PolerTextSearchEngine {
 
 			proc.on('error', (err) => {
 				this.outputChannel.appendLine(`[POLER ENGINE] Process error: ${err.message}. Falling back to Ripgrep.`);
-				finish({ stdout: '', stderr: err.message, code: null, cancelled: false });
+				finish({ stdout: '', stderr: err.message, code: null, cancelled: false, timedOut: false });
 			});
 
 			proc.on('close', (code) => {
-				finish({ stdout, stderr, code, cancelled: isCancelled });
+				finish({ stdout, stderr, code, cancelled: isCancelled, timedOut });
 			});
 		});
 	}
