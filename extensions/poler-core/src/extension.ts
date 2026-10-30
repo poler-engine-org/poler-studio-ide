@@ -7,6 +7,7 @@ import { ScientificStudioPanel } from './scientificStudioView';
 import { PolerEditCoreService } from './editCoreService';
 import { buildPolerEditUri, decodePolerEditUri, PolerEditCoreLargeFileProvider } from './largeFileProvider';
 import { PolerCopilotGateway, resolveServiceToken } from './copilotGateway';
+import { registerPolerEditLargeFileTool } from './copilotEditTool';
 
 export function activate(context: vscode.ExtensionContext) {
     const bridge = EngineBridge.instance();
@@ -16,6 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
     const largeFileProvider = new PolerEditCoreLargeFileProvider(editCoreService);
     const copilotGateway = new PolerCopilotGateway(bridge);
     context.subscriptions.push(editCoreService, copilotGateway);
+    context.subscriptions.push(registerPolerEditLargeFileTool(editCoreService));
 
     // 1. Регистрация представлений в Activity Bar (POLER Studio)
     context.subscriptions.push(
@@ -92,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ||
-                                    (editor ? path.dirname(editor.document.fileName) : '.');
+                (editor ? path.dirname(editor.document.fileName) : '.');
 
             await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
@@ -104,8 +106,8 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (impact) {
                     const dangerMsg = impact.dangerLevel === 'CRITICAL' ? '🔴 КРИТИЧНИЙ' :
-                                      impact.dangerLevel === 'HIGH' ? '🟠 ВИСОКИЙ' :
-                                      impact.dangerLevel === 'MEDIUM' ? '🟡 СЕРЕДНІЙ' : '🟢 БЕЗПЕЧНИЙ';
+                        impact.dangerLevel === 'HIGH' ? '🟠 ВИСОКИЙ' :
+                            impact.dangerLevel === 'MEDIUM' ? '🟡 СЕРЕДНІЙ' : '🟢 БЕЗПЕЧНИЙ';
                     vscode.window.showInformationMessage(
                         `POLER Nexus [${targetSymbol}]: Рівень ризику ${dangerMsg}. ` +
                         `Визначень: ${impact.definitions.length}, Висхідних викликів: ${impact.upstreamCallers.length}, Залежностей: ${impact.downstreamCallees.length}`
@@ -122,7 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('poler.resonanceSearch', async () => {
             const editor = vscode.window.activeTextEditor;
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ||
-                                    (editor ? path.dirname(editor.document.fileName) : '.');
+                (editor ? path.dirname(editor.document.fileName) : '.');
 
             const query = await vscode.window.showInputBox({
                 prompt: 'POLER Топографічний резонансний пошук (Ψ):',
@@ -497,4 +499,4 @@ export function activate(context: vscode.ExtensionContext) {
     );
 }
 
-export function deactivate() {}
+export function deactivate() { }

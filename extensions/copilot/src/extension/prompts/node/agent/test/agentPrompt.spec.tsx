@@ -470,7 +470,7 @@ suite('AgentPrompt - Gemini Flash prompt additions experiment', () => {
 			source: undefined,
 		});
 		const availableTools = includeToolSpecificTools
-			? [...toolsService.tools, syntheticTool(ToolName.CoreRunInTerminal), syntheticTool(ToolName.FindTextInFiles)]
+			? [...toolsService.tools, syntheticTool(ToolName.CoreRunInTerminal), syntheticTool(ToolName.FindTextInFiles), syntheticTool(ToolName.PolerEditLargeFile)]
 			: toolsService.tools.filter(t => t.name !== ToolName.CoreRunInTerminal && t.name !== ToolName.FindTextInFiles);
 		const props: AgentPromptProps = {
 			priority: 1,
@@ -505,6 +505,7 @@ suite('AgentPrompt - Gemini Flash prompt additions experiment', () => {
 	test.each(['gpt-5.6', 'claude-sonnet-4.6', 'gemini-2.0-flash'])('routes exact workspace search directly for %s', async family => {
 		const rendered = await renderForFamily(family);
 		expect(rendered).toContain(`For exact text or regex searches, call ${ToolName.FindTextInFiles} directly.`);
+		expect(rendered).toContain(`${ToolName.PolerEditLargeFile} to search with POLER Edit or read focused line windows`);
 		expect(rendered).not.toContain(`instead of directly calling ${ToolName.FindTextInFiles}`);
 	});
 

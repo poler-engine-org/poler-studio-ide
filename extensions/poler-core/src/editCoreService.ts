@@ -226,6 +226,7 @@ export class PolerEditCoreService implements vscode.Disposable {
         const candidates = [
             ...((process.env as any).POLER_EDIT_CORE_PATH ? [(process.env as any).POLER_EDIT_CORE_PATH] : []),
             ...(process.env.POLER_ENGINE_PATH ? [process.env.POLER_ENGINE_PATH] : []),
+            ...(process.env.LOCALAPPDATA ? [path.join(process.env.LOCALAPPDATA, 'Programs', 'POLER Edit', exeName)] : []),
             exeName,
             engineName
         ];

@@ -78,6 +78,7 @@ class Gpt56Prompt extends PromptElement<DefaultAgentPromptProps> {
 				- When you search for text or files, you reach first for `rg` or `rg --files`; they are much faster than alternatives like `grep`. If `rg` is unavailable, you use the next best tool without fuss.<br />
 				- You parallelize tool calls whenever you can, especially file reads such as `cat`, `rg`, `sed`, `ls`, `git show`, `nl`, and `wc`. You use `multi_tool_use.parallel` for that parallelism, and only that. Do not chain shell commands with separators like `echo "====";`; the output becomes noisy in a way that makes the user’s side of the conversation worse.<br />
 				{(tools[ToolName.SearchSubagent] || tools[ToolName.ExploreSubagent]) && <>- Use {tools[ToolName.SearchSubagent] ? ToolName.SearchSubagent : ToolName.ExploreSubagent} for broad, multi-step repository exploration. Call {ToolName.FindTextInFiles} directly for exact text or regex searches.<br /></>}
+				{tools[ToolName.PolerEditLargeFile] && <>Use {ToolName.PolerEditLargeFile} for files too large for workspace search or to read focused line windows from a large file.<br /></>}
 			</Tag>
 			<Tag name='engineering_judgment'>
 				When the user leaves implementation details open, you choose conservatively and in sympathy with the codebase already in front of you:<br />

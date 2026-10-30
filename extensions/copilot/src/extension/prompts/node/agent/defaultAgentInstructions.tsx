@@ -119,6 +119,7 @@ export class DefaultAgentPrompt extends PromptElement<DefaultAgentPromptProps> {
 				You are a highly sophisticated automated coding agent with expert-level knowledge across many different programming languages and frameworks.<br />
 				The user will ask a question, or ask you to perform a task, and it may require lots of research to answer correctly. There is a selection of tools that let you perform actions or retrieve helpful context to answer the user's question.<br />
 				{tools[ToolName.FindTextInFiles] && <>For exact text or regex searches, call {ToolName.FindTextInFiles} directly. Do not route exact searches through a subagent.<br /></>}
+				{tools[ToolName.PolerEditLargeFile] && <>For files too large for workspace search, use {ToolName.PolerEditLargeFile} to search with POLER Edit or read focused line windows using startLine and lineCount.<br /></>}
 				{(tools[ToolName.SearchSubagent] || tools[ToolName.ExploreSubagent]) && <>Use {tools[ToolName.SearchSubagent] ? ToolName.SearchSubagent : ToolName.ExploreSubagent} for broad, multi-step repository exploration that needs several searches or file reads.<br /></>}
 				{tools[ToolName.ExecutionSubagent] && <>For most execution tasks and terminal commands, use {ToolName.ExecutionSubagent} to run commands and get relevant portions of the output instead of using {ToolName.CoreRunInTerminal}. Use {ToolName.CoreRunInTerminal} in rare cases when you want the entire output of a single command without truncation.<br /></>}
 				You will be given some context and attachments along with the user prompt. You can use them if they are relevant to the task, and ignore them if not.{tools[ToolName.ReadFile] && <> Some attachments may be summarized with omitted sections like `/* Lines 123-456 omitted */`. You can use the {ToolName.ReadFile} tool to read more context if needed. Never pass this omitted line marker to an edit tool.</>}<br />
@@ -139,6 +140,7 @@ export class DefaultAgentPrompt extends PromptElement<DefaultAgentPromptProps> {
 				No need to ask permission before using a tool.<br />
 				NEVER say the name of a tool to a user. For example, instead of saying that you'll use the {ToolName.CoreRunInTerminal} tool, say "I'll run the command in a terminal".<br />
 				{tools[ToolName.FindTextInFiles] && <>For exact text or regex searches, call {ToolName.FindTextInFiles} directly. Do not route exact searches through a subagent.<br /></>}
+				{tools[ToolName.PolerEditLargeFile] && <>For files too large for workspace search, use {ToolName.PolerEditLargeFile} to search with POLER Edit or read focused line windows using startLine and lineCount.<br /></>}
 				{(tools[ToolName.SearchSubagent] || tools[ToolName.ExploreSubagent]) && <>Use {tools[ToolName.SearchSubagent] ? ToolName.SearchSubagent : ToolName.ExploreSubagent} for broad, multi-step repository exploration that needs several searches or file reads.<br /></>}
 				{tools[ToolName.ExecutionSubagent] && <>For most execution tasks and terminal commands, use {ToolName.ExecutionSubagent} to run commands and get relevant portions of the output instead of using {ToolName.CoreRunInTerminal}. Use {ToolName.CoreRunInTerminal} in rare cases when you want the entire output of a single command without truncation.<br /></>}
 				If you think running multiple tools can answer the user's question, prefer calling them in parallel whenever possible{tools[ToolName.Codebase] && <>, but do not call {ToolName.Codebase} in parallel.</>}<br />
@@ -303,6 +305,7 @@ export class AlternateGPTPrompt extends PromptElement<DefaultAgentPromptProps> {
 				NEVER say the name of a tool to a user. For example, instead of saying that you'll use the {ToolName.CoreRunInTerminal} tool, say "I'll run the command in a terminal".<br />
 				If you think running multiple tools can answer the user's question, prefer calling them in parallel whenever possible{tools[ToolName.Codebase] && <>, but do not call {ToolName.Codebase} in parallel.</>}<br />
 				{tools[ToolName.FindTextInFiles] && <>For exact text or regex searches, call {ToolName.FindTextInFiles} directly. Do not route exact searches through a subagent.<br /></>}
+				{tools[ToolName.PolerEditLargeFile] && <>For files too large for workspace search, use {ToolName.PolerEditLargeFile} to search with POLER Edit or read focused line windows using startLine and lineCount.<br /></>}
 				{(tools[ToolName.SearchSubagent] || tools[ToolName.ExploreSubagent]) && <>Use {tools[ToolName.SearchSubagent] ? ToolName.SearchSubagent : ToolName.ExploreSubagent} for broad, multi-step repository exploration as a quick context-gathering step.<br /></>}
 				{tools[ToolName.ReadFile] && <>When using the {ToolName.ReadFile} tool, prefer reading a large section over calling the {ToolName.ReadFile} tool many times in sequence. You can also think of all the pieces you may be interested in and read them in parallel. Read large enough context to ensure you get what you need.<br /></>}
 				{tools[ToolName.Codebase] && <>If {ToolName.Codebase} returns the full contents of the text files in the workspace, you have all the workspace context.<br /></>}
@@ -428,6 +431,7 @@ export class CodesearchModeInstructions extends PromptElement<DefaultAgentPrompt
 				Use {ToolName.Codebase} to search for high level concepts or descriptions of functionality in the user's question. This is the best place to start if you don't know where to look or the exact strings found in the codebase.<br />
 				Prefer {ToolName.SearchWorkspaceSymbols} over {ToolName.FindTextInFiles} when you have precise code identifiers to search for.<br />
 				Prefer {ToolName.FindTextInFiles} over {ToolName.Codebase} when you have precise keywords to search for.<br />
+				{detectToolCapabilities(this.props.availableTools)[ToolName.PolerEditLargeFile] && <>Use {ToolName.PolerEditLargeFile} for large files or line-window retrieval that exceeds normal workspace search.<br /></>}
 				The tools {ToolName.FindFiles}, {ToolName.FindTextInFiles}, and {ToolName.GetScmChanges} are deterministic and comprehensive, so do not repeatedly invoke them with the same arguments.<br />
 			</Tag>
 			<CodeBlockFormattingRules />

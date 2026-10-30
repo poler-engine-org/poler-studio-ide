@@ -24,6 +24,7 @@ export enum ToolName {
 	VSCodeAPI = 'get_vscode_api',
 	FindFiles = 'file_search',
 	FindTextInFiles = 'grep_search',
+	PolerEditLargeFile = 'poler_edit_large_file',
 	ReadFile = 'read_file',
 	ViewImage = 'view_image',
 	ListDirectory = 'list_dir',
