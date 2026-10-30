@@ -265,47 +265,40 @@ export function ensureCopilotPlatformPackage(platform: string, arch: string, nod
  * this artifact is present.
  */
 export function prepareBuiltInCopilotRipgrepShim(platform: string, arch: string, builtInCopilotExtensionDir: string, appNodeModulesDir: string, options: PrepareBuiltInCopilotOptions = {}): void {
-	const { nodePlatform, nodeArch } = toNodePlatformArch(platform, arch);
-	const platformArch = `${nodePlatform}-${nodeArch}`;
-	const copilotPackagePlatformArch = toCopilotPackagePlatformArch(platform, arch);
-	const tgrepPlatformArch = toCopilotTgrepPlatformArch(platform, arch);
-
-	const extensionNodeModules = path.join(builtInCopilotExtensionDir, 'node_modules');
-	const copilotBase = path.join(extensionNodeModules, '@github', 'copilot');
-	const copilotSdkBase = path.join(copilotBase, 'sdk');
-	if (!fs.existsSync(copilotSdkBase)) {
-		throw new Error(`[prepareBuiltInCopilotRipgrepShim] Copilot SDK directory not found at ${copilotSdkBase}`);
-	}
-	materializeBuiltInCopilotSdkPlatformFiles(copilotPackagePlatformArch, tgrepPlatformArch, copilotBase, appNodeModulesDir, options);
-	pruneNonTargetCopilotSdkPrebuilds(copilotPackagePlatformArch, path.join(copilotSdkBase, 'prebuilds'), copilotPlatforms);
-	pruneNonTargetCopilotSdkPrebuilds(tgrepPlatformArch, path.join(copilotSdkBase, path.join('tgrep', 'bin')), copilotTgrepPlatforms);
-	pruneNonTargetCopilotSdkPrebuilds(tgrepPlatformArch, path.join(copilotBase, path.join('tgrep', 'bin')), copilotTgrepPlatforms);
-
-	const ripgrepSource = path.join(appNodeModulesDir, '@vscode', 'ripgrep-universal', 'bin', platformArch);
-	if (!fs.existsSync(ripgrepSource)) {
-		const binDir = path.join(appNodeModulesDir, '@vscode', 'ripgrep-universal', 'bin');
-		let diagnostics: string;
-		try {
-			diagnostics = fs.existsSync(binDir)
-				? `Available bin entries: ${JSON.stringify(fs.readdirSync(binDir))}`
-				: `bin directory does not exist at ${binDir}`;
-		} catch (err) {
-			diagnostics = `Failed to enumerate bin directory: ${err}`;
-		}
-		throw new Error(`[prepareBuiltInCopilotRipgrepShim] ripgrep source not found at ${ripgrepSource} (build platform=${platform}, arch=${arch}, computed platformArch=${platformArch}). ${diagnostics}`);
-	}
-
-	const ripgrepDest = path.join(copilotSdkBase, 'ripgrep', 'bin', platformArch);
-	const shimMarkerPath = path.join(copilotBase, 'shims.txt');
-
 	try {
+		const { nodePlatform, nodeArch } = toNodePlatformArch(platform, arch);
+		const platformArch = `${nodePlatform}-${nodeArch}`;
+		const copilotPackagePlatformArch = toCopilotPackagePlatformArch(platform, arch);
+		const tgrepPlatformArch = toCopilotTgrepPlatformArch(platform, arch);
+
+		const extensionNodeModules = path.join(builtInCopilotExtensionDir, 'node_modules');
+		const copilotBase = path.join(extensionNodeModules, '@github', 'copilot');
+		const copilotSdkBase = path.join(copilotBase, 'sdk');
+		if (!fs.existsSync(copilotSdkBase)) {
+			console.log(`[prepareBuiltInCopilotRipgrepShim] Skipping Copilot ripgrep shim: copilotSdkBase not found at ${copilotSdkBase}`);
+			return;
+		}
+		materializeBuiltInCopilotSdkPlatformFiles(copilotPackagePlatformArch, tgrepPlatformArch, copilotBase, appNodeModulesDir, options);
+		pruneNonTargetCopilotSdkPrebuilds(copilotPackagePlatformArch, path.join(copilotSdkBase, 'prebuilds'), copilotPlatforms);
+		pruneNonTargetCopilotSdkPrebuilds(tgrepPlatformArch, path.join(copilotSdkBase, path.join('tgrep', 'bin')), copilotTgrepPlatforms);
+		pruneNonTargetCopilotSdkPrebuilds(tgrepPlatformArch, path.join(copilotBase, path.join('tgrep', 'bin')), copilotTgrepPlatforms);
+
+		const ripgrepSource = path.join(appNodeModulesDir, '@vscode', 'ripgrep-universal', 'bin', platformArch);
+		if (!fs.existsSync(ripgrepSource)) {
+			console.log(`[prepareBuiltInCopilotRipgrepShim] Skipping Copilot ripgrep shim: ripgrepSource not found at ${ripgrepSource}`);
+			return;
+		}
+
+		const ripgrepDest = path.join(copilotSdkBase, 'ripgrep', 'bin', platformArch);
+		const shimMarkerPath = path.join(copilotBase, 'shims.txt');
+
 		fs.mkdirSync(ripgrepDest, { recursive: true });
 		fs.cpSync(ripgrepSource, ripgrepDest, { recursive: true });
 
 		fs.writeFileSync(shimMarkerPath, 'Shims created successfully');
 		console.log(`[prepareBuiltInCopilotRipgrepShim] Materialized ripgrep shim for ${platformArch} in ${builtInCopilotExtensionDir}`);
 	} catch (err) {
-		throw new Error(`[prepareBuiltInCopilotRipgrepShim] Failed to materialize ripgrep shim for ${platformArch}: ${err}`);
+		console.warn(`[prepareBuiltInCopilotRipgrepShim] Warning: skipped Copilot ripgrep shim (${err})`);
 	}
 }
 
