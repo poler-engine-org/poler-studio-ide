@@ -81,6 +81,11 @@ jobs:
       - name: Package VSCode Win32 x64
         shell: pwsh
         run: |
+          $sdkBin = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Filter "signtool.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($sdkBin) {
+            $env:PATH = "$($sdkBin.DirectoryName);$env:PATH"
+            Write-Host "Added Windows SDK to PATH: $($sdkBin.DirectoryName)"
+          }
           npm run gulp vscode-win32-x64
 
       - name: Embed POLER Native Engines
