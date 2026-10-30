@@ -1,0 +1,8 @@
+zed/crates/
+├── terminal/          # 121KB - терминал backend
+├── terminal_view/     # UI для терминала
+├── agent/             # 107KB - AI агент
+├── thread/            # 158KB - AI потоки
+├── anthropic/         # Anthropic backend
+├── assistant_*/       # AI ассистент компоненты
+└── gpui/              # GPU UI фреймворк

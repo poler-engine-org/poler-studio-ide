@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poler-quantum"
+version = "1.1.0"
+description = "POLER[n] attention core: free-energy perception, memory resonance, logic projection and a quantum-sampled mode"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "qiskit>=1.0",
+    "qiskit-aer>=0.14",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[project.scripts]
+poler-quantum = "poler_quantum.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["poler_quantum*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,11 @@
+{
+  "name": "@poler/engine",
+  "version": "0.93.0",
+  "description": "POLER Engine v0.93.0 - Sovereign High-Velocity Search, Resonance and AI Engine",
+  "author": "POLER Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poler-engine-org/poler-studio-ide.git"
+  }
+}

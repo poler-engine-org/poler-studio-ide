@@ -1,0 +1,29 @@
+───────────┼───────────┼───────────
+───────────┼───────────┼───────────
+W≈0.83   │   W≠0     │
+┼───────────┼───────────
+│             W≈0.81 │
+
+Wait, what about the top border of R1C1? It has ─ on Row1. That's fine.
+What about the right border of R1C3? It has a │ on Row1? No, Row1 ends with ─. Let's add a right border for the top row. The user's example had │ on line 1. Let's add it.
+───────────┼───────────┼─────────── ends with ─. Should be │.
+Let's fix:
+Row1: ───────────┼───────────┼───────────│ (wait, that's weird. Usually it's ───────────┼───────────┼─────────── with a border on the right. Let's add a │ at the end.
+Let's look at the user's example: │ │ has │ at the end. So Row1 must end with │.
+
+Let's write it properly:
+Row1: ───────────┼───────────┼───────────│ (but then the top border for C3 is ─ then │ at the end - that gives a right border for C3).
+Row2: ───────────┼───────────┼─────────── (middle horizontal line)
+Row3: W≈0.83 │ W≠0 │ │ (Wait, R2C1 has no left border, but it has a right border. R2C2 has both. R2C3 has left border. R2C3 has a right border - yes.)
+Row4: ┼───────────┼───────────│ (R3C1 has a right border? The user didn't say anything about R3C1. But having a right border for R3C1 is fine. R3C2 has left and right borders. R3C3 has left border (the middle ┼ or │?) Wait, if I put │ at the end, R3C3 has a right border. But I need R3C3 to have NO LEFT border. So between C2 and C3, there should be NO │ or ┼. In Row4, it's a horizontal line. So ────────────┼──────────── - if C2 and C3 are connected by ┼, that's fine. But the left border of C3 is the vertical line between C2 and C3. In Row5, I must NOT have a │ between C2 and C3.
+
+Let's design Row5: │ W≈0.81 │
+Here, C1 is  (no left border, but has right border │). C2 is  (spaces, has left border from C1's │, and no right border because there is no │ between C2 and C3). C3 is W≈0.81 │ (has left border? No, because there is no │ before it. But wait, if there is no │ before it, then C3 is just floating text. We need a right border for C3, which is the last │. So that works.
+Let's check Row4: I need R3C3 to have a TOP border. So Row4 must have ─ for C3. Since C3 starts at column 22, I need ─────────── for C3. Let's put ─────────── for C2 and C3, and  (spaces) for C1. So Row4: ┼───────────┼─────────── (wait, the ┼ between C2 and C3 gives a left border to C3? No, ┼ is a horizontal line with a vertical connection. If I want a top border for C3, it just needs ─. The ┼ is fine. But for R3C3 to have NO LEFT border, the vertical line on the left of C3 must be missing. In Row5, I will omit the │ between C2 and C3. In Row4, it's a horizontal line, so having a ┼ there just means the horizontal line passes through. That doesn't create a vertical border for the cell below (R3C3) unless there is a │ in Row5. So it's safe.
+
+Let's compile the final answer with a clear code block.
+I will use the user's preferred style: │, ─, ┼.
+
+Let's write it:
+
+text

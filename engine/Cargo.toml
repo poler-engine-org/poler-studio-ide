@@ -1,0 +1,182 @@
+# ============================================================
+# Cargo Workspace — фаза M2 (docs/MERGE_PLAN.md)
+#
+# Крейты квантового ядра всасаны из POLER-Quantum-RS
+# (git subtree + filter-repo: 25 коммитов истории RQ1–RQ23 сохранены,
+# blame проходит сквозь merge — см. `git log f5e53dc^2`).
+# Соседний клон ../POLER-Quantum-RS_repo больше не нужен:
+# свежий clone + cargo build работает из коробки.
+#
+# Root-пакет poler-engine остаётся в корне (гибрид package+workspace).
+# Полный виртуальный манифест с переездом движка в crates/poler-engine —
+# цель фазы M3 (монорепо poler; docs/MERGE_PLAN.md §3 и
+# docs/MONOREPO_CONSOLIDATION_PLAN.md §1–2).
+# ============================================================
+[workspace]
+resolver = "2"
+members = ["crates/pqc", "crates/pqw", "crates/reader", "crates/poler-ffi", "crates/poler-eri", "crates/poler-boot"]
+
+# Наследуемые метаданные pqc/pqw (манифесты крейтов используют
+# version.workspace = true и пр.). Квантовое ядро живёт на своей
+# линии 1.x; poler-engine НЕ наследует workspace.package и живёт на 0.28.x.
+# Лицензия крейтов НЕ наследуется от workspace: с унификации 2026-10-22
+# каждый крейт декларирует license-file на корневой LICENSE.md
+# (POLER SAML v1.0) — пермиссивное "MIT" в метаданных противоречило
+# коммерческой модели (см. TERMS.md).
+[workspace.package]
+version = "1.5.0"
+edition = "2021"
+repository = "https://github.com/poler-engine-org/POLER-Quantum-RS"
+authors = ["Kotokvit <213886740+Kotokvit@users.noreply.github.com>"]
+
+[package]
+name = "poler-engine"
+version = "0.93.0"
+edition = "2021"
+rust-version = "1.80"
+authors = ["POLER Engineering Core"]
+description = "AI-Native Topographical, Resonant and Graph Search Engine — successor to grep/ripgrep and blind vector RAG"
+# v0.22.0: POLER Custom Source-Available & Modification Disclosure
+# License v1.0 (модель Unreal Engine EULA) — см. LICENSE.md / TERMS.md.
+# SPDX не стандартизирует кастомные лицензии — используем license-file.
+license-file = "LICENSE.md"
+repository = "https://github.com/poler-engine-org/poler-engine"
+keywords = ["search", "retrieval", "graph", "rag", "cli"]
+categories = ["command-line-utilities", "text-processing"]
+
+[lib]
+name = "poler_engine"
+path = "src/lib.rs"
+
+[[bin]]
+name = "poler-engine"
+path = "src/main.rs"
+
+[features]
+# M4 (docs/UNIFIED_ARCHITECTURE.md): C-ABI мост к Zig-криптоядру PND v8.2
+# (os/core/poler_core.zig). Фича включает build.rs, который собирает
+# os/core через Zig 0.14.0 в libpoler_core.a и линкует статически.
+# Требования к окружению: `zig` в PATH, либо POLER_ZIG=/путь/к/zig,
+# либо готовая библиотека POLER_CORE_LIB=.../os/core/zig-out/lib.
+# Без фичи сборка не требует Zig-тулчейна (CI по умолчанию — без неё).
+pnd-ffi = []
+
+[dependencies]
+# v0.73.0: POLER-ERI — квантово-химическое ядро (RHF/STO-3G) из Drive-архива,
+# аудит + 6 багфиксов см. crates/poler-eri/src/{eri_rys,shell_driver,one_electron,eri_direct}.rs
+poler-eri = { path = "crates/poler-eri" }
+clap = { version = "4.5", features = ["derive"] }
+rayon = "1.10"
+memmap2 = "0.9"
+libc = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+petgraph = { version = "0.6", features = ["serde-1"] }
+regex = "1.10"
+aho-corasick = "1.1"
+# Крейт из состава ripgrep (BurntSushi): параллельный обход дерева с .gitignore
+ignore = "0.4"
+# Обработка SIGINT для watcher-режима
+ctrlc = "3.4"
+# Disk-backed таблица символов AIDDE (лечит OOM на 65K+ файлов)
+rusqlite = { version = "0.31", features = ["bundled"] }
+# SIMD-поиск байтов: literal prefilter в стиле ripgrep / kwset GNU grep
+memchr = "2"
+# v0.15.0: poler-shell — TUI Dashboard + REPL
+ratatui = { version = "0.29", default-features = false, features = ["crossterm"] }
+crossterm = "0.28"
+rustyline = "14"
+# v0.16.0: Unified VCS & Data Mesh — нативные адаптеры GitHub/GitLab/Gitea
+# + Pure-Rust git (gix). ureq — синхронный HTTP-клиент без tokio-runtime
+# (минимум зависимостей; работает в той же модели процесса, что и CDP-краулер).
+ureq = { version = "2.10", features = ["json"] }
+gix = { version = "0.66", default-features = false, features = ["blocking-http-transport-reqwest", "blocking-network-client", "worktree-mutation", "revision", "comfort"] }
+# v0.17.0: TUI Redesign (MiMo Code-style 4-pane + mouse + notes/sources CRUD)
+# v0.17.5: Security Hardening — confirmation gate (--yes/--dry-run) для write-операций
+# v2.0 (sovereign stack): Google/NotebookLM/Gmail/Drive/OAuth удалены;
+# ed25519-dalek (License Gate) удалён вместе с гейтируемыми интеграциями —
+# локальные функции движка работают без ключей и лимитов.
+# arboard — системный буфер обмена (drag-select → Ctrl+Y копирование);
+# локальная утилита, оставлена (к облаку отношения не имеет)
+arboard = "3"
+# tui-textarea — встроенный редактор для Ctrl+N (новая заметка) прямо в TUI
+tui-textarea = "0.7"
+# globset — glob-паттерны для src/sources (фильтр по расширению/пути)
+globset = "0.4"
+# v0.20.0: Native Retrieval — grep-режим и RAG-чанки. НОВЫХ зависимостей нет:
+# aho-corasick/regex/memchr/ignore/rayon уже стояли в дереве (grep-слой
+# собирается из готовых блоков — см. docs/native-retrieval-analysis.md)
+
+# POLER-Quantum-RS Sovereign Core (L5-мышление, русла J, Born-лотерея, сфера Блоха)
+# M2: крейты живут в этом репозитории (crates/{pqc,pqw}), ноль внешних
+# зависимостей; история — через merge-родителя f5e53dc^2.
+pqc_core = { package = "pqc", path = "crates/pqc" }
+pqw_core = { package = "pqw", path = "crates/pqw" }
+poler_reader = { package = "poler-reader", path = "crates/reader" }
+
+# v2.0 Foundation (Приоритет 2, PLAN_POLER_V2): бесплатные победы.
+# whatlang — определение языка (75 языков, байт-граммы с трешолдом уверенности);
+# rust-stemmers — Snowball-стеммеры (18 языков): латиница индексируется/запрашивается
+# через English Snowball, кириллица остаётся на проверенном кастомном uk+ru стеммере;
+# unicode-segmentation — UAX#29 word boundaries (правильные слова для CJK/апострофов).
+whatlang = "0.16"
+rust-stemmers = "1.2"
+unicode-segmentation = "1.11"
+
+# v2.0 Compression (Приоритет 3, PLAN_POLER_V2): плотность памяти индекса.
+# FSST НЕ добавляется как крейт: ядро портировано в src/compression/fsst.rs
+# (clean-port из Apache-2.0 lance/fsst с адаптацией под poler: детерминированный
+# сэмплинг вместо rand, кодирование одиночной строки с ФИКСИРОВАННОЙ таблицей
+# для compress-probe лукапов, безопасные unaligned-загрузки, компактная
+# сериализация таблицы). Публичный API крейта fsst переобучает таблицу на
+# каждом вызове и рассчитан на batch-массивы > 4 МБ — для словаря термов он
+# непригоден; порт снимает зависимость от rand и внешнего чёрного ящика.
+# lz4_flex — чистый Rust, декомпрессия на горячем пути (парковка постингов
+# watcher-состояния: hits/hit_keys сжимаются, разжимаются по требованию).
+lz4_flex = "0.11"
+# zstd — doc store веб-краулера (pages.text → BLOB со обученным словарём,
+# ленивое обучение на первых страницах, обратная совместимость старых БД).
+zstd = "0.13"
+
+# v0.39.0 Streaming Ingestion Pipeline (docs/DIRECTIVE_STREAMING_INGESTION_PIPELINE.md):
+# blake3 — криптографический хеш чанков для FastCDC-дедупликации .poler
+# (референсная реализация, SIMD, чистый Rust без C-зависимостей; sha256
+# для верификации потоков остаётся суверенным crate::pqc::sha256).
+blake3 = "1.5"
+
+# v0.28.1 Archives (Native Retrieval: скан архивов без распаковки):
+# чтение записей zip/tar/tar.gz/tar.zst/gz/zst прямо из контейнера,
+# виртуальные пути «архив::запись», распаковка на диск запрещена by design.
+# Политика зависимостей сохранена: rust_backend у flate2 (miniz_oxide,
+# чистый Rust), zstd уже в дереве, aes-crypto — чистый Rust (AES-256
+# зашифрованные zip). bzip2/xz/deflate64 НЕ включены: C-зависимости
+# и редкие форматы — суверенный минимум.
+zip = { version = "2.2", default-features = false, features = ["deflate", "aes-crypto", "zstd"] }
+tar = "0.4"
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] }
+
+[dev-dependencies]
+tempfile = "3.10"
+# benches/poler_pure_ablation.rs (ablation-исследование v0.3.5, 26e04aa)
+nalgebra = "0.33"
+
+# Максимальная оптимизация: LTO по всему крейту, один CGU, strip символов.
+# Тесты гоняются в debug-профиле (`cargo test`), поэтому panic="abort"
+# в release не мешает тестовому харнессу.
+# v2.0 NOTE: RAM < 8GB → собирать с -j1 (codegen-units=1 + LTO тяжёлые).
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+# Лёгкий тестовый профиль для машин с ограниченной RAM.
+# Грабля двух сессий: dev-профиль с debuginfo=2 линкует тест-бинарник,
+# который валит линкер (OOM SIGKILL / SIGBUS при полном диске).
+# Использование: cargo test --profile test-light --lib (нужно ~3 ГБ
+# свободной RAM; integration-тесты и сборка бинарника — ещё легче).
+[profile.test-light]
+inherits = "dev"
+debug = 0
+incremental = false

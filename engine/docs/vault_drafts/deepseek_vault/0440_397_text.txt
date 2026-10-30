@@ -1,0 +1,9 @@
+$$
+T = \lim_{\Delta\Sigma \to 0} \frac{\Delta\Sigma}{\Delta I(F_n)} = \text{const}
+$$
+
+The user previously had trouble with formulas breaking. Now they're sending this, possibly to check if it works or to confirm the correct syntax. The context is a technical discussion about formatting equations for a novel's scientific framework. The user wants to ensure that this formula is correctly formatted for their document.
+
+I need to respond appropriately. I'll confirm that the formula is correct and will render properly in a LaTeX environment, and maybe offer a brief explanation of the components, but keep it focused on the formatting. Since this is a single formula, I'll also mention that if they're using a platform without LaTeX support, they might need a plain text version.
+
+The assistant should be helpful and concise. I'll structure the response: acknowledge that the formula is correct, note that it will render well in LaTeX, and provide a plain text alternative if needed.

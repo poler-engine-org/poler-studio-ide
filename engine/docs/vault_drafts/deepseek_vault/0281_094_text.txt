@@ -1,0 +1,13 @@
+───────────┼───────────┼───────────
+───────────┼───────────┼───────────
+W≈0.83   │   W≠0     │
+┼───────────┼───────────
+│             W≈0.81 │
+
+Let's check the bottom left cell (R3C1). It has a right border │ but no left border (since it starts with spaces). That's fine.
+R2C1 has top (Row2), right (Row3 first │), no left (Row3 starts with space), no bottom (Row4 starts with spaces). Perfect.
+R3C3 has top (Row4 has ─ for C3), right (Row5 ends with │), no left (Row5 has no │ between C2 and C3, just spaces), no bottom (no row below). Perfect.
+
+Let's format this nicely in a code block.
+
+text

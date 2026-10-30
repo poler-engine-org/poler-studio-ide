@@ -1,0 +1,6 @@
+if chosen_letter in target_continuations:
+true_bank += base_true_value * (active_bet_success ? 2 : 1)
+update_icon_progress(target_word)
+else:
+trash_bank += base_trash_value * (active_bet_fail_penalty ? 1.5 : 1)
+if active_bet: reset_selected_icon_progress(1)

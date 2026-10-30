@@ -1,0 +1,12 @@
+{
+"timestamp": 1234,
+"objects": [
+{"id": 1, "name": "cube", "color": "red", "pos3d": [1.2, 0.5, 3.0], "size": [0.5,0.5,0.5], "velocity": [0.1,0,0]},
+{"id": 2, "name": "sphere", "color": "blue", "pos3d": [2.0, 0.5, 2.5], "size": [0.4,0.4,0.4], "velocity": [0,0,0]}
+],
+"relations": [
+{"type": "left_of", "obj1": 2, "obj2": 1},
+    {"type": "on_top_of", "obj1": 1, "obj2": 3} // если есть стол
+],
+"ui_text": [{"text": "Score: 100", "pos": [100,50]}]
+}

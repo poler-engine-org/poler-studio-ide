@@ -1,0 +1,4 @@
+Python (Crawl4AI) → TF-IDF вектор → TCP socket (4B len + 1B type + JSON)
+→ Rust TCP Server → PythonBridge → GenerationCycle.evolve_to_rest()
+    → SyntaxUnfolder → текст + энергосостояние → TCP socket → Python
+→ semantic_isolation() → ACCEPT / REJECT

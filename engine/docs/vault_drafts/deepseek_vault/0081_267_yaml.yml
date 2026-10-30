@@ -1,0 +1,23 @@
+name: skill-system
+version: '1.0'
+summary: Universal agent skill system
+description: |
+  Набор скиллов для агентов (OCR, анализ, визуализация, отчёты).
+grade: stable
+confinement: strict
+
+apps:
+skill:
+command: bin/skill
+plugs: [home, network, removable-media]
+
+parts:
+skill-system:
+plugin: python
+source: .
+python-packages: [jsonschema, reportlab, pypdf]
+stage-packages: [tesseract-ocr, poppler-utils, ghostscript]
+install: |
+cp -r skills $SNAPCRAFT_PART_INSTALL/
+cp orchestrator.py $SNAPCRAFT_PART_INSTALL/bin/skill
+chmod +x $SNAPCRAFT_PART_INSTALL/bin/skill

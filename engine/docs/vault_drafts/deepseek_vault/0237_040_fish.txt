@@ -1,0 +1,2 @@
+rm -rf /home/vitalij/UE5_Source/Engine/Intermediate
+rm -rf /home/vitalij/UE5_Source/Engine/Plugins/*/Intermediate

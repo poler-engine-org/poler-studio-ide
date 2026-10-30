@@ -1,0 +1,10 @@
+{
+"contradictions": [
+{
+      "thesis": "Утверждение X",
+"sources_for": [{"id": "src_001", "confidence": 0.9}, {"id": "src_005", "confidence": 0.6}],
+"sources_against": [{"id": "src_012", "confidence": 0.8}],
+      "resolution": "не разрешено | требуется дополнительный источник | можно считать недоказанным"
+}
+]
+}

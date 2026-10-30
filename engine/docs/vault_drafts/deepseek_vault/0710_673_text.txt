@@ -1,0 +1,4 @@
+int + int → int (0.6)
+int + float → float (0.3)
+str + str → str (0.9)
+list + list → list (0.8)

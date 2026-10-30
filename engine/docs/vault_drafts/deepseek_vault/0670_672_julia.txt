@@ -1,0 +1,4 @@
+# synaptic_dynamic.jl
+using LinearAlgebra, Statistics, CUDA  # Автоматическая работа на GPU
+
+struct SynapticOperators

@@ -1,0 +1,11 @@
+{
+"id": "src_001",
+"type": "video|audio|paper|blog|data|news",
+"url": "...",
+"title": "...",
+"author": "...",
+"date": "YYYY-MM-DD",
+"language": "ru|en|...",
+"reliability_score": 0.85,
+  "entities": ["Иван Иванов", "ООО Ромашка", "Москва"],
+"key_theses": [

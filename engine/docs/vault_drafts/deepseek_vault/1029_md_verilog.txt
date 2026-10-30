@@ -1,0 +1,4 @@
+// Многоуровневый резонанс R[n]
+for (level = 0; level < resonance_depth; level++) begin
+R_memory[level] <= R_memory[level] ^ filtered_state;
+end

@@ -1,0 +1,5 @@
+echo "## Директорія: /home/vitalij/Документи/POLER-DYNAMIS-v5/poler_rust_core" >> all_files.md
+echo "" >> all_files.md
+find "./poler_rust_core" -type f -exec echo "### Файл: {}" \; -exec echo '```' \; -exec cat {} \; -exec echo '```' \; -exec echo "" \; >> all_files.md
+5. Додайте вміст папки src (всередині poler_rust_core)
+fish

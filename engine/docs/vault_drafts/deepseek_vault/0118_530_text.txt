@@ -1,0 +1,15 @@
+waveterm/
+├── frontend/          # React/TypeScript UI
+│   ├── app/
+│   │   ├── block/     # Block компоненты
+│   │   ├── aipanel/   # AI панель
+│   │   ├── store/     # State management
+│   │   └── view/      # ViewModel для каждого типа
+│   └── util/          # Утилиты
+├── pkg/               # Go backend
+│   ├── waveai/        # AI backends (Anthropic, OpenAI, etc.)
+│   ├── blockcontroller/  # Управление блоками
+│   ├── wshrpc/        # RPC между frontend/backend
+│   └── wstore/        # Data store
+├── emain/             # Electron main process
+└── cmd/               # CLI команды

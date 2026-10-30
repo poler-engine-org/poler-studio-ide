@@ -1,0 +1,2 @@
+set pkg (ls *.pkg.tar.zst)
+sudo pacman -U $pkg

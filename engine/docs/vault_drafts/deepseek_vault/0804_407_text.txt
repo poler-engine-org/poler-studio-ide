@@ -1,0 +1,5 @@
+Web Inspector Lite
+TAG: <div>
+ID: none
+CLASS: none
+TEXT: Web Inspector LiteTag: <div>ID: noneCLASS: none

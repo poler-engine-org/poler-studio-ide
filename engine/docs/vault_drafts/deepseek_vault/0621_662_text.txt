@@ -1,0 +1,4 @@
+Phase 1: Decay
+Phase 2: Input activation
+Phase 3: Propagate zone-by-zone (Input → Hidden → Output)
+Phase 4: Spike generation ПОСЛЕ получения сигнала

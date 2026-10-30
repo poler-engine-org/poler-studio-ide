@@ -1,0 +1,10 @@
+aria2c \
+--seed-ratio=0.0 \
+--listen-port=6881-6999 \
+--enable-dht \
+--dht-listen-port=6881 \
+--bt-enable-lpd=true \
+--bt-tracker="udp://tracker.opentrackr.org:1337/announce,udp://open.demonii.com:1337/announce,udp://tracker.openbittorrent.com:80/announce" \
+--check-integrity=true \
+--allow-overwrite=true \
+--bt-add-peer="8.212.10.159:6881" \

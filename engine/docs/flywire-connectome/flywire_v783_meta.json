@@ -1,0 +1,92 @@
+{
+  "title": "FlyWire Whole-brain Connectome v783 — компактное CSR-ядро POLER",
+  "source": {
+    "zenodo_record": 10676866,
+    "doi": "10.5281/zenodo.10676866",
+    "release": "v783 (взрослый женский мозг Drosophila melanogaster)",
+    "paper": "Dorkenwald et al., Nature 634 (2024): Neuronal wiring diagram of an adult brain",
+    "nt_paper": "Eckstein et al. 2024 — синаптические предсказания медиаторов",
+    "files": {
+      "proofread_connections_783.feather": {
+        "bytes": 852022274,
+        "sha256": "24f960ae3e7d4f8cd30db3b62e99fb5179cc3d1e76d8c155bfb441e9737d3faf"
+      },
+      "proofread_root_ids_783.npy": {
+        "bytes": 1114168
+      },
+      "per_neuron_neuropil_count_pre_783.feather": {
+        "bytes": 16853770
+      },
+      "per_neuron_neuropil_count_post_783.feather": {
+        "bytes": 233843050
+      },
+      "flywire_synapses_783.feather": {
+        "bytes": 9493000000,
+        "note": "полная синаптическая таблица (9.5 ГБ) вне ядра; тот же URL-шаблон Zenodo"
+      }
+    },
+    "raw_local": "docs/flywire-connectome/raw/ (вне git; SHA-256 для воспроизведения)"
+  },
+  "aggregation": {
+    "source_rows": 16847997,
+    "unique_pairs": 15091983,
+    "rule": "пара (pre,post) из нескольких нейропилей склеивается: weight = Σ syn_count; nt_class = argmax_c Σ(score_c·syn_count)",
+    "u16_saturation_edges": 0
+  },
+  "graph": {
+    "nodes": 138639,
+    "edges_full": 15091983,
+    "synapses_full": 54492922,
+    "edges_core_ge5": 2700513,
+    "synapses_core_ge5": 34153566,
+    "core_min_synapses": 5,
+    "isolated_proofread": 616
+  },
+  "neurotransmitter_edges_full": {
+    "gaba": 3233367,
+    "ach": 8075464,
+    "glut": 2966785,
+    "oct": 177284,
+    "ser": 225146,
+    "da": 413937
+  },
+  "sign_convention": {
+    "+1 возбуждающий": [
+      "ach (ацетилхолин)",
+      "glut (глутамат)"
+    ],
+    "-1 тормозной": [
+      "gaba"
+    ],
+    "модуляторные": [
+      "oct (октопамин)",
+      "ser (серотонин)",
+      "da (допамин)"
+    ]
+  },
+  "format": {
+    "container": "zstd level=19 поверх сырого little-endian буфера",
+    "layout": "MAGIC b'FLYCSR1' + u8 core_flag + u32 n_nodes + u32 n_edges + offsets u32[n_nodes+1] + targets u32[n_edges] + weights u16[n_edges] + nt_class u8[n_edges]",
+    "nt_class_map": {
+      "0": "gaba",
+      "1": "ach",
+      "2": "glut",
+      "3": "oct",
+      "4": "ser",
+      "5": "da"
+    },
+    "nodes_file": "flywire_v783_nodes.bin — отсортированные u64 LE root_id; targets — индексы в этом массиве"
+  },
+  "artifacts": {
+    "flywire_v783_full.csr.zst": {
+      "bytes": 35201642
+    },
+    "flywire_v783_core.csr.zst": {
+      "bytes": 7059202
+    },
+    "flywire_v783_nodes.bin": {
+      "bytes": 1109112
+    }
+  },
+  "male_cns_note": "мужской целый CNS раздаётся через codex.flywire.ai → Downloads (бесплатный Google-логин); формат feather/parquet тот же — конвертер совместим."
+}

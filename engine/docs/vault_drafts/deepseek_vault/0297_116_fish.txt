@@ -1,0 +1,5 @@
+tar -czvf ../lit-graph-fixed.pkg.tar.zst *
+
+Встановіть виправлений пакет:
+
+fish

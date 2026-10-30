@@ -1,0 +1,7 @@
+Input:  "создать функцию сложения"
+Your output (key presses): d e f space s u m ...
+Correct output:           d e f space a d d ...
+Loss: 0.34
+Этап 5: Обучение с подкреплением (Reinforcement Learning)
+
+Environment = Python interpreter

@@ -1,0 +1,4 @@
+=== TEST 4: PythonBridge ===
+New archetypes: ["quantum", "energy", "resonance", "entropy", "observation"]
+Stats: vectors=1, vocab=5
+Final H_PSI: 0.017227

@@ -1,0 +1,90 @@
+// Улучшенная версия с асимметричной логикой 0↮1
+module AsymmetricSynapsePrimitive (
+input wire clk,
+input wire reset,
+// Асимметричные входы
+input wire void_bit_in,      // Фундаментальный 0 (вакуум)
+input wire presence_bit_in,  // Возникший 1 (относительно вакуума)
+// Параметры волны с памятью
+input wire [15:0] weight_pattern,
+input wire [15:0] freq_pattern,
+input wire [15:0] phase_pattern,
+// Состояние резонанса
+output reg synapse_out,
+output reg void_persists      // Ключевой флаг: 0 продолжает существовать
+);
+
+// Регистры для паттернов с памятью
+reg [15:0] weight_reg;
+reg [15:0] freq_reg;
+reg [15:0] phase_reg;
+
+// Счетчик для временного кодирования
+reg [3:0] time_counter;
+
+// Состояние синапса
+reg synapse_state;
+reg has_ever_activated;
+
+// Инициализация асимметрии: сначала всегда 0
+initial begin
+weight_reg = weight_pattern;
+freq_reg = freq_pattern;
+phase_reg = phase_pattern;
+synapse_out = 1'b0;
+void_persists = 1'b1;  // Вакуум существует изначально
+has_ever_activated = 1'b0;
+end
+
+// Асимметричная логика: 0 может быть без 1, но 1 требует 0
+always @(posedge clk) begin
+if (reset) begin
+weight_reg <= weight_pattern;
+freq_reg <= freq_pattern;
+synapse_out <= 1'b0;
+void_persists <= 1'b1;
+end else begin
+// ВАЖНО: void_bit_in всегда должен быть 1 (вакуум существует)
+if (void_bit_in !== 1'b1) begin
+// Авария системы: потеряли вакуум!
+synapse_out <= 1'b0;
+void_persists <= 1'b0;
+end else begin
+// Вакуум сохраняется
+void_persists <= 1'b1;
+
+// Генерация временной фазы
+time_counter <= time_counter + 1;
+
+// Синусоидальный паттерн: sin(freq * time + phase)
+wire [3:0] wave_index = (freq_reg[3:0] * time_counter) + phase_reg[3:0];
+wire wave_bit = weight_reg[wave_index[3:0]];
+
+// Асимметричная активация:
+// 1 может возникнуть только если есть void_bit_in (вакуум)
+if (presence_bit_in && wave_bit && void_bit_in) begin
+// Возникновение 1 из 0
+synapse_out <= 1'b1;
+has_ever_activated <= 1'b1;
+end else begin
+// Возврат к 0, но вакуум сохраняется
+synapse_out <= 1'b0;
+end
+
+// Адаптация паттернов на основе истории
+if (has_ever_activated) begin
+// Усиление использованных паттернов
+weight_reg <= weight_reg | (weight_reg << 1);
+freq_reg <= freq_reg ^ (freq_reg >> 1);
+end
+end
+end
+end
+
+// Проверка инварианта асимметрии
+property asymmetry_invariant;
+@(posedge clk)
+(presence_bit_in && !void_bit_in) |=> $error("Нарушение асимметрии: 1 без 0");
+endproperty
+
+endmodule

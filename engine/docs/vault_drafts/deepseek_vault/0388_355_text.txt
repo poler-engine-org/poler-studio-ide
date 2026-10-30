@@ -1,0 +1,2 @@
+150
+13:ACTION=="change", KERNEL=="zram0", ATTR{initstate}=="1", SYSCTL{vm.swappiness}="150", \

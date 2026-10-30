@@ -1,0 +1,16 @@
+skill-system/
+├── skills/
+│   ├── poler-toolkit/
+│   │   ├── manifest.json
+│   │   ├── scripts/
+│   │   └── ...
+│   ├── pdf-ocr/
+│   └── ...
+├── orchestrator.py
+├── skill
+├── install.sh
+└── README.md
+
+И дать команду:
+
+bash

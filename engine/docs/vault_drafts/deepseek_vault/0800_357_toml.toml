@@ -1,0 +1,2 @@
+use rayon::prelude::*;
+results.par_iter_mut().zip(input).for_each(|(r, i)| *r = compute(i));

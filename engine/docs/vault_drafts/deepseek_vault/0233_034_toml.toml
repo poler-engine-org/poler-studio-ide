@@ -1,0 +1,6 @@
+use octocrab::Octocrab;
+
+let token = std::env::var("GITHUB_TOKEN").unwrap();
+let crab = Octocrab::builder()
+.personal_token(token)
+.build()?;

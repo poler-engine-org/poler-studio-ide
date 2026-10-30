@@ -1,0 +1,25 @@
+import jsonschema
+import json
+
+def validate_against_schema(data, schema):
+try:
+jsonschema.validate(instance=data, schema=schema)
+return True, None
+except jsonschema.ValidationError as e:
+return False, str(e)
+
+# Пример использования
+schema = {
+"type": "object",
+"properties": {
+"status": {"type": "string"},
+"confidence": {"type": "number", "minimum": 0, "maximum": 1},
+"data": {"type": "object"}
+},
+"required": ["status", "confidence"]
+}
+
+# ... после получения данных от скрипта
+ok, error = validate_against_schema(output, schema)
+if not ok:
+raise ValueError(f"Invalid output: {error}")

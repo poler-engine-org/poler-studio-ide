@@ -1,0 +1,16 @@
+extends RigidBody
+
+export var engine_power = 500
+export var steering_power = 20
+
+var steering = 0.0
+var acceleration = 0.0
+
+func _physics_process(delta):
+# Ввод управления
+acceleration = Input.get_action_strength("ui_up") - Input.get_action_strength("ui_down")
+steering = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
+
+# Применяем управление
+apply_central_force(-transform.basis.z * acceleration * engine_power * delta)
+apply_torque(Vector3.UP * steering * steering_power * delta)

@@ -1,0 +1,3 @@
+xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+xhci_hcd 0000:00:14.0: HC died; cleaning up
+usb 1-3: USB disconnect, device number 2

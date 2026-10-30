@@ -1,0 +1,12 @@
+│            │
+─────┼─────┼─────
+│           |
+─────┼─────┼─────
+│           │
+
+This shows a 3x3 grid made of single lines, but the left column is missing its left border, and the bottom row is missing its bottom border. The crosspoints (┼) are used for internal intersections.
+Let's analyze the user's example:
+Row 1: spaces, │, spaces, │ (top horizontal lines? Actually, wait. Let's parse it. They want a grid like that.
+Actually, the user's example looks like:
+
+text

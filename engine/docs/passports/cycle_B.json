@@ -1,0 +1,52 @@
+{
+ "theorem": "II.1",
+ "cycle": "B",
+ "subject": "f(x,c) = (x & absorb) ^ sign == c*x, c∈{−1,0,+1}",
+ "code": [
+  "src/quantum/meta_compiler.rs#L83-L89 (константы)",
+  "src/quantum/meta_compiler.rs#L151-L158 (masks_of)",
+  "src/quantum/meta_compiler.rs#L897-L898 (горячий путь AVX2)",
+  "src/quantum/meta_compiler.rs#L1104-L1122 (кодоген)",
+  "src/quantum/meta_compiler.rs#L1372 (тест-каveat ±0.0)"
+ ],
+ "commit": "38a862a",
+ "z3": {
+  "z3_version": "5.1.0",
+  "proofs": {
+   "c_plus1_identity_all_patterns": "UNSAT (теорема доказана)",
+   "c_minus1_flip_is_fneg_non_nan": "UNSAT (теорема доказана)",
+   "c_zero_kill_is_ieq_mul_for_finite": "UNSAT (теорема доказана)",
+   "c_zero_signed_zero_bit_gap": "SAT — битовый кавет +0.0 vs −0.0 для x<0 (значения IEEE-равны)",
+   "c_zero_domain_gap_is_real": "SAT (домен обязан быть конечным: 0·Inf = NaN ≠ +0.0)"
+  }
+ },
+ "numpy": {
+  "samples_total": 2000018,
+  "finite": 1998025,
+  "non_finite": 1993,
+  "c=+0": {
+   "exact_bits": 873970,
+   "signed_zero_only": 1124055,
+   "signed_zero_all_are_pm0": true,
+   "signed_zero_predicted_by_src_sign": 1124055,
+   "value_mismatch_finite": 0,
+   "VERDICT": "CONFIRMED WITH CAVEATS: −0.0 vs +0.0 (IEEE-754 равны, биты различаются) — все случаи предсказаны знаком источника"
+  },
+  "c=+1": {
+   "exact_bits": 1999077,
+   "signed_zero_only": 0,
+   "signed_zero_all_are_pm0": true,
+   "signed_zero_predicted_by_src_sign": 0,
+   "value_mismatch_finite": 0,
+   "VERDICT": "AXIOM CONFIRMED (побитово)"
+  },
+  "c=-1": {
+   "exact_bits": 1998027,
+   "signed_zero_only": 0,
+   "signed_zero_all_are_pm0": true,
+   "signed_zero_predicted_by_src_sign": 0,
+   "value_mismatch_finite": 0,
+   "VERDICT": "AXIOM CONFIRMED (побитово)"
+  }
+ }
+}

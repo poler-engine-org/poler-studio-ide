@@ -1,0 +1,2 @@
+$$T = \lim_{\Delta\Sigma \to 0} \frac{\Delta\Sigma}{\Delta I(F_n)} = \text{const}$$
+latex

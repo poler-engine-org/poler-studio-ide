@@ -1,0 +1,2 @@
+class DigitalBeing(SynapticVortexV5):
+"""

@@ -1,0 +1,7 @@
+frontend/app/aipanel/
+├── aipanel.tsx         # Главная панель
+├── aipanelinput.tsx    # Поле ввода
+├── aimessage.tsx       # Сообщения
+├── aitooluse.tsx       # Tool use UI
+├── waveai-model.tsx    # Выбор модели
+└── airatelimitstrip.tsx # Rate limit UI

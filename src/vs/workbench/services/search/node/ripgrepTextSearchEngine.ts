@@ -21,6 +21,7 @@ import { anchorGlob, IOutputChannel, MAX_RIPGREP_SYMLINK_LOOPS, Maybe, rangeToSe
 import type { RipgrepTextSearchOptions } from '../common/searchExtTypesInternal.js';
 import { newToOldPreviewOptions } from '../common/searchExtConversionTypes.js';
 import { rgDiskPath } from '../../../../base/node/ripgrep.js';
+import { PolerTextSearchEngine } from './polerTextSearchEngine.js';
 
 export class RipgrepTextSearchEngine {
 
@@ -60,6 +61,15 @@ export class RipgrepTextSearchEngine {
 
 		if (!query.pattern) {
 			return { limitHit: false };
+		}
+
+		if (PolerTextSearchEngine.isAvailable()) {
+			const polerEngine = new PolerTextSearchEngine(this.outputChannel);
+			const polerResult = await polerEngine.provideTextSearchResults(query, options, progress, token);
+			if (polerResult !== null) {
+				return polerResult;
+			}
+			this.outputChannel.appendLine('[POLER ENGINE] Transitioning to ripgrep compatibility provider.');
 		}
 
 		const resolvedRgDiskPath = await rgDiskPath();

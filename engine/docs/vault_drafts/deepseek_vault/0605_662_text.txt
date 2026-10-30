@@ -1,0 +1,4 @@
+Phase 1: Decay all states
+Phase 2: Input zone activation
+Phase 3: Propagate zone-by-zone (Input → Hidden → Output)
+Phase 4: Spike generation AFTER receiving signals

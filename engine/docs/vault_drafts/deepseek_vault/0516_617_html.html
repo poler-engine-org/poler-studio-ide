@@ -1,0 +1,214 @@
+Run
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POLER[n] v3.2 — Когнитивная архитектура с обучаемым L-модулем</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Inter', sans-serif;
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+color: #e2e8f0;
+min-height: 100vh;
+}
+.cognitive-cycle {
+position: relative;
+background: rgba(15, 23, 42, 0.5);
+border-radius: 50%;
+width: 500px;
+height: 500px;
+margin: 2rem auto;
+border: 1px solid #334155;
+box-shadow: 0 0 40px rgba(59, 130, 246, 0.2);
+}
+.cycle-stage {
+position: absolute;
+width: 80px;
+height: 80px;
+border-radius: 50%;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+font-weight: bold;
+background: rgba(30, 41, 59, 0.9);
+border: 2px solid #3b82f6;
+box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+transition: all 0.4s ease;
+z-index: 10;
+}
+.cycle-stage-active {
+transform: scale(1.15);
+border-color: #60a5fa;
+box-shadow: 0 0 25px rgba(96, 165, 250, 0.6);
+background: rgba(51, 65, 85, 0.9);
+}
+.cycle-arrow {
+position: absolute;
+color: #60a5fa;
+font-size: 28px;
+font-weight: bold;
+transform-origin: center;
+z-index: 5;
+}
+.cycle-connection {
+position: absolute;
+background: rgba(59, 130, 246, 0.3);
+transform-origin: center;
+z-index: 1;
+}
+.output-value {
+color: #34d399;
+font-weight: 700;
+}
+.energy-glow {
+text-shadow: 0 0 10px rgba(52, 211, 153, 0.7);
+}
+.param-slider {
+-webkit-appearance: none;
+width: 100%;
+height: 6px;
+border-radius: 5px;
+background: #334155;
+outline: none;
+}
+.param-slider::-webkit-slider-thumb {
+-webkit-appearance: none;
+appearance: none;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+background: #3b82f6;
+cursor: pointer;
+transition: all 0.2s;
+}
+.param-slider::-webkit-slider-thumb:hover {
+background: #60a5fa;
+transform: scale(1.2);
+}
+.log-entry {
+animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(5px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.pulse-dot {
+display: inline-block;
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background-color: #34d399;
+margin-right: 8px;
+animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); }
+100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+.ann-vis {
+background: rgba(30, 41, 59, 0.8);
+border-radius: 12px;
+padding: 1rem;
+margin-top: 1rem;
+}
+.neuron {
+display: inline-block;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: #3b82f6;
+margin: 0.25rem;
+box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+.neuron-input { background: #10b981; }
+.neuron-hidden { background: #8b5cf6; }
+.neuron-output { background: #ec4899; }
+</style>
+</head>
+<body class="p-4">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Заголовок -->
+<header class="text-center py-6">
+<h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">POLER[n] v3.2</h1>
+            <p class="text-lg text-gray-300 mt-2">Когнитивная архитектура с обучаемым L-модулем</p>
+<div class="mt-4 flex justify-center items-center text-sm text-slate-400">
+<span class="pulse-dot"></span>
+                <span>Система активна и готова к обработке</span>
+</div>
+</header>
+
+<!-- Визуализация когнитивного цикла -->
+<div class="cognitive-cycle">
+<!-- Соединительные линии -->
+<div class="cycle-connection" id="connection-1" style="width: 150px; height: 2px; top: 70px; left: 175px; transform: rotate(45deg);"></div>
+<div class="cycle-connection" id="connection-2" style="width: 150px; height: 2px; top: 175px; left: 280px; transform: rotate(135deg);"></div>
+<div class="cycle-connection" id="connection-3" style="width: 150px; height: 2px; top: 280px; left: 175px; transform: rotate(225deg);"></div>
+<div class="cycle-connection" id="connection-4" style="width: 150px; height: 2px; top: 175px; left: 70px; transform: rotate(315deg);"></div>
+
+<!-- Этапы цикла -->
+<div class="cycle-stage" style="top: 50px; left: 210px;" id="cycle-p">
+<span class="text-2xl">℘</span>
+<span class="text-xs mt-1">Перцепция</span>
+</div>
+
+<div class="cycle-arrow" style="top: 120px; left: 270px; transform: rotate(45deg);">→</div>
+
+<div class="cycle-stage" style="top: 140px; left: 320px;" id="cycle-o">
+<span class="text-2xl">O</span>
+<span class="text-xs mt-1">Образ</span>
+</div>
+
+<div class="cycle-arrow" style="top: 240px; left: 320px; transform: rotate(135deg);">→</div>
+
+<div class="cycle-stage" style="top: 320px; left: 270px;" id="cycle-l">
+<span class="text-2xl">L</span>
+<span class="text-xs mt-1">Логика</span>
+</div>
+
+<div class="cycle-arrow" style="top: 320px; left: 170px; transform: rotate(225deg);">→</div>
+
+<div class="cycle-stage" style="top: 240px; left: 120px;" id="cycle-e">
+<span class="text-2xl">ε</span>
+<span class="text-xs mt-1">Энергия</span>
+</div>
+
+<div class="cycle-arrow" style="top: 120px; left: 120px; transform: rotate(315deg);">→</div>
+
+<div class="cycle-stage" style="top: 140px; left: 70px;" id="cycle-r">
+<span class="text-2xl">R[n]</span>
+<span class="text-xs mt-1">Резонанс</span>
+</div>
+</div>
+
+<!-- Основное содержимое -->
+<div class="grid lg:grid-cols-2 gap-8">
+<!-- Панель управления и ввода -->
+<div class="space-y-6">
+<div class="bg-slate-800 rounded-xl p-6 space-y-6">
+<h2 class="text-xl font-semibold border-b border-slate-700 pb-2">Параметры системы</h2>
+
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-sm text-slate-300 mb-2">Параметр τ (память): <span id="tau-value" class="text-blue-400 font-bold">2.0</span></label>
+<input id="tau-slider" type="range" min="0.1" max="10" step="0.1" value="2.0" class="param-slider">
+</div>
+
+<div>
+<label class="block text-sm text-slate-300 mb-2">Параметр κ (энергия): <span id="kappa-value" class="text-emerald-400 font-bold">1.0</span></label>
+<input id="kappa-slider" type="range" min="0.1" max="5" step="0.1" value="1.0" class="param-slider">
+</div>
+
+<div>
+<label class="block text-sm text-slate-300 mb-2">Уровень резонанса n: <span id="n-value" class="text-purple-400 font-bold">3</span></label>
+<input id="n-slider" type="range" min="1" max="10" step="1" value="3" class="param-slider">
+</div>
+
+<div>
+<label class="block text-sm text-slate-300 mb-2">Тип ввода (℘)</label>
+<select id="input-type" class="w-full bg-slate-700 text-slate-200 rounded-lg p-2 border border-slate-600">

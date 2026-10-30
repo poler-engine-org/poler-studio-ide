@@ -1,0 +1,139 @@
+import json
+import subprocess
+import jsonschema
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+
+# ─── Skill Registry ──────────────────────────────────────────────
+class SkillRegistry:
+def __init__(self, skills_dir: Path):
+self.skills_dir = skills_dir
+self.manifests: Dict[str, Dict] = {}
+self._load_manifests()
+
+def _load_manifests(self):
+for skill_path in self.skills_dir.iterdir():
+manifest_file = skill_path / "manifest.json"
+if manifest_file.exists():
+with open(manifest_file) as f:
+self.manifests[skill_path.name] = json.load(f)
+
+def get_manifest(self, skill_name: str) -> Optional[Dict]:
+return self.manifests.get(skill_name)
+
+def get_dependencies(self, skill_name: str) -> List[str]:
+m = self.get_manifest(skill_name)
+return m.get("dependencies", []) if m else []
+
+def get_triggers(self, skill_name: str) -> Dict:
+m = self.get_manifest(skill_name)
+return m.get("triggers", {}) if m else {}
+
+# ─── Planner ─────────────────────────────────────────────────────
+class Planner:
+def __init__(self, registry: SkillRegistry):
+self.registry = registry
+
+def plan(self, user_query: str, input_file: Optional[str] = None) -> List[str]:
+q = user_query.lower()
+        if "pdf" in q and ("анализ" in q or "проанализируй" in q):
+return ["pdf-ocr", "poler-toolkit"]
+        elif "презентация" in q or "слайд" in q:
+return ["poler-toolkit", "charts", "pptx"]
+elif "отчёт" in q or "report" in q:
+return ["poler-toolkit", "report"]
+else:
+return ["poler-toolkit"]
+
+# ─── Executor ────────────────────────────────────────────────────
+class Executor:
+def __init__(self, skills_dir: Path, registry: SkillRegistry):
+self.skills_dir = skills_dir
+self.registry = registry
+
+def run(self, skill_name: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+manifest = self.registry.get_manifest(skill_name)
+if not manifest:
+raise ValueError(f"Skill '{skill_name}' not found")
+
+# Находим скрипт
+script_path = self._find_script(skill_name)
+if not script_path:
+raise FileNotFoundError(f"No script for '{skill_name}'")
+
+# Запускаем процесс
+cmd = ["python", str(script_path)]
+proc = subprocess.run(
+cmd,
+input=json.dumps(input_data),
+capture_output=True,
+text=True
+)
+if proc.returncode != 0:
+raise RuntimeError(f"Skill '{skill_name}' error: {proc.stderr}")
+
+output = json.loads(proc.stdout)
+
+# Валидация по схеме
+schema = manifest.get("outputs", {}).get("schema", {})
+if schema:
+jsonschema.validate(instance=output, schema=schema)
+
+return output
+
+def _find_script(self, skill_name: str) -> Optional[Path]:
+scripts_dir = self.skills_dir / skill_name / "scripts"
+if not scripts_dir.exists():
+return None
+candidates = ["main.py", "run.py", f"{skill_name}.py"]
+for c in candidates:
+p = scripts_dir / c
+if p.exists():
+return p
+# fallback: первый попавшийся .py
+py_files = list(scripts_dir.glob("*.py"))
+return py_files[0] if py_files else None
+
+# ─── Aggregator ──────────────────────────────────────────────────
+class Aggregator:
+def aggregate(self, results: Dict[str, Any]) -> Dict[str, Any]:
+# Пока возвращаем результат последнего скилла
+if not results:
+return {"status": "no results"}
+return results[list(results.keys())[-1]]
+
+# ─── Orchestrator ────────────────────────────────────────────────
+class Orchestrator:
+def __init__(self, skills_dir: Path):
+self.skills_dir = skills_dir
+self.registry = SkillRegistry(skills_dir)
+self.planner = Planner(self.registry)
+self.executor = Executor(skills_dir, self.registry)
+self.aggregator = Aggregator()
+
+def process(self, user_query: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+plan = self.planner.plan(user_query, input_data.get("input_file"))
+results = {}
+current_input = input_data
+
+for skill_name in plan:
+print(f"▶ Executing {skill_name}...")
+# Если это не первый скилл, передаём выход предыдущего
+if results:
+prev_output = results[list(results.keys())[-1]]
+current_input = {"input": prev_output.get("data", prev_output)}
+result = self.executor.run(skill_name, current_input)
+results[skill_name] = result
+
+return self.aggregator.aggregate(results)
+
+# ─── Пример использования ──────────────────────────────────────
+if __name__ == "__main__":
+    skills_dir = Path("/path/to/your/skills")   # подставь свой путь
+orch = Orchestrator(skills_dir)
+
+result = orch.process(
+        "Проанализируй PDF и сделай отчёт с графиками",
+{"input_file": "/path/to/doc.pdf"}
+)
+print(json.dumps(result, indent=2, ensure_ascii=False))

@@ -1,0 +1,16 @@
+[package]
+name = "pqw"
+description = "POLER Quantum Weights (.poler/.pqw): zero-dependency serialization of phase states - trit quantization, sparse LENS topology, mmap zero-copy, McWeeny invariant"
+version.workspace = true
+edition.workspace = true
+# POLER SAML v1.0 (unification 2026-10-22): явно, без workspace-наследования —
+# пермиссивное "MIT" в метаданных противоречило коммерческой модели.
+license-file = "../../LICENSE.md"
+repository.workspace = true
+authors.workspace = true
+keywords = ["quantum", "serialization", "binary-format", "mmap", "sparse"]
+categories = ["encoding", "science"]
+
+[[bin]]
+name = "pqw"
+path = "src/bin/pqw.rs"

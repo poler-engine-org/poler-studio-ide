@@ -1,0 +1,4 @@
+Epoch  7: accuracy = 48.3%
+Epoch  8: accuracy = 24.1%
+Epoch  9: accuracy = 44.8%
+Epoch 29: accuracy = 3.4%   ← Падение!

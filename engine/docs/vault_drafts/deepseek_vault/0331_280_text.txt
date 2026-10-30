@@ -1,0 +1,8 @@
+Hello world
+This is a test line
+Another line with keyword
+Final line without
+
+Команда:
+
+bash

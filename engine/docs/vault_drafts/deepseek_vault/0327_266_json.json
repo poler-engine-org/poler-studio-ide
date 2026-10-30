@@ -1,0 +1,34 @@
+{
+  "topic": "Тема исследования",
+"meta": {
+    "depth": "глубокий",
+"time_spent_seconds": 0,
+"sources_total": 15,
+"sources_used": 12
+},
+"sources": [
+{
+"id": "src_001",
+"type": "video",
+"url": "...",
+"title": "...",
+"reliability_score": 0.85,
+"key_theses": ["...", "..."],
+"entities": ["...", "..."],
+"contradictions": []
+}
+],
+"synthesis": {
+"summary": "...",
+"sections": [
+      {"title": "Определения", "content": "..."},
+{"title": "Факты", "content": "..."},
+      {"title": "Мнения", "content": "..."}
+],
+"knowledge_graph": {
+"entities": ["A", "B", "C"],
+      "relations": [{"from": "A", "to": "B", "type": "связано через"}]
+},
+"contradictions": [
+{"thesis": "X", "sources_for": [...], "sources_against": [...], "resolution": "не разрешено"}
+],

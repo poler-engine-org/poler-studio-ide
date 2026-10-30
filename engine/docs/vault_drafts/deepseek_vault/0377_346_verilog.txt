@@ -1,0 +1,210 @@
+// ============================================================================
+// top_level.v - Top-Level Module for POLER FPGA Architecture (f64/Q32.32)
+// ============================================================================
+// Connects the deformed tensor product core (Hadamard, NOT XOR),
+// POLER cycle iterator (differential equation with dissipator,
+// resonance, projector), and memory-mapped I/O interface.
+//
+// Register Map (byte offsets):
+//   0x00-0x3F: Matrix X (4×4, 64-bit per element = 128 bytes)
+//   0x40-0x7F: Matrix Y (4×4)
+//   0x80-0x8F: Matrix L (dissipation, 4×4, first 2 rows only)
+//   0x90-0x9F: Matrix A (resonance, 4×4, first 2 rows only)
+//   0xA0-0xAF: Matrix Jc (constraint, 4×4)
+//   0xB0-0xBF: Matrix G (gradient, 4×4)
+//   0xC0-0xC7: epsilon (deformation parameter)
+//   0xC8-0xCF: eta (learning rate)
+//   0xD0-0xD7: gamma (resonance coupling)
+//   0xD8-0xDF: mix (quantum normalization)
+//   0xE0-0xE7: initial_state pointer
+//   0xE8:       control (bit 0: start tensor, bit 1: start POLER)
+//   0xEC:       status (bit 0: busy, bit 1: converged)
+// ============================================================================
+
+module top_level #(
+parameter N = 4,
+parameter MAT_ENTRIES = 16,
+parameter DATA_WIDTH = 64,          // Q32.32 = 64-bit
+parameter ADDR_WIDTH = 16
+)(
+input  wire                             clk,
+input  wire                             rst_n,
+
+// Simplified bus interface
+input  wire [ADDR_WIDTH-1:0]            addr,
+input  wire [DATA_WIDTH-1:0]            wdata,
+input  wire                             we,
+input  wire                             re,
+output reg  [DATA_WIDTH-1:0]            rdata,
+output reg                              ready,
+
+// Status outputs
+output wire                             converged,
+output wire [15:0]                      iterations,
+output wire                             busy
+);
+
+// ========================================================================
+// Internal Registers
+// ========================================================================
+reg signed [63:0] reg_x [0:MAT_ENTRIES-1];
+reg signed [63:0] reg_y [0:MAT_ENTRIES-1];
+reg signed [63:0] reg_L [0:MAT_ENTRIES-1];
+reg signed [63:0] reg_A [0:MAT_ENTRIES-1];
+reg signed [63:0] reg_Jc [0:MAT_ENTRIES-1];
+reg signed [63:0] reg_G [0:MAT_ENTRIES-1];
+reg signed [63:0] reg_epsilon;
+reg signed [63:0] reg_eta;
+reg signed [63:0] reg_gamma;
+reg signed [63:0] reg_mix;
+reg signed [63:0] reg_initial_state [0:MAT_ENTRIES-1];
+reg              reg_start_tensor;
+reg              reg_start_poler;
+
+// ========================================================================
+// Tensor Product Instance
+// ========================================================================
+wire signed [63:0] tp_result [0:MAT_ENTRIES-1];
+wire              tp_valid;
+
+tensor_product #(
+.N(N),
+.MAT_ENTRIES(MAT_ENTRIES)
+) tp_inst (
+.clk(clk),
+.rst_n(rst_n),
+.valid_in(reg_start_tensor),
+.x(reg_x),
+.y(reg_y),
+.epsilon(reg_epsilon),
+.result(tp_result),
+.valid_out(tp_valid)
+);
+
+// ========================================================================
+// POLER Cycle Instance
+// ========================================================================
+wire signed [63:0] poler_result [0:MAT_ENTRIES-1];
+wire              poler_converged;
+wire              poler_done;
+wire [15:0]       poler_iterations;
+
+poler_cycle #(
+.N(N),
+.MAT_ENTRIES(MAT_ENTRIES)
+) poler_inst (
+.clk(clk),
+.rst_n(rst_n),
+.start(reg_start_poler),
+.L_mat(reg_L),
+.A_mat(reg_A),
+.Jc_mat(reg_Jc),
+.G_mat(reg_G),
+.eta(reg_eta),
+.gamma(reg_gamma),
+.mix(reg_mix),
+.initial_state(reg_initial_state),
+.converged_state(poler_result),
+.iterations_used(poler_iterations),
+.converged(poler_converged),
+.done(poler_done)
+);
+
+assign converged  = poler_converged;
+assign iterations = poler_iterations;
+assign busy       = (reg_start_tensor | reg_start_poler) & ~poler_done;
+
+// ========================================================================
+// Register Write Interface
+// ========================================================================
+integer i;
+
+always @(posedge clk or negedge rst_n) begin
+if (!rst_n) begin
+for (i = 0; i < MAT_ENTRIES; i = i + 1) begin
+reg_x[i] <= 64'sd0;
+reg_y[i] <= 64'sd0;
+reg_L[i] <= 64'sd0;
+reg_A[i] <= 64'sd0;
+reg_Jc[i] <= 64'sd0;
+reg_G[i] <= 64'sd0;
+reg_initial_state[i] <= 64'sd0;
+end
+reg_epsilon      <= 64'sd0;
+reg_eta          <= 64'sd0;
+reg_gamma        <= 64'sd0;
+reg_mix          <= 64'sd0;
+reg_start_tensor <= 1'b0;
+reg_start_poler  <= 1'b0;
+end else if (we) begin
+case (addr[7:0])
+// X matrix: 0x00-0x3F (4 elements per 8-byte slot)
+8'h00: reg_x[0]  <= wdata;
+8'h08: reg_x[1]  <= wdata;
+8'h10: reg_x[2]  <= wdata;
+8'h18: reg_x[3]  <= wdata;
+8'h20: reg_x[4]  <= wdata;
+8'h28: reg_x[5]  <= wdata;
+8'h30: reg_x[6]  <= wdata;
+8'h38: reg_x[7]  <= wdata;
+8'h40: reg_x[8]  <= wdata;
+8'h48: reg_x[9]  <= wdata;
+8'h50: reg_x[10] <= wdata;
+8'h58: reg_x[11] <= wdata;
+8'h60: reg_x[12] <= wdata;
+8'h68: reg_x[13] <= wdata;
+8'h70: reg_x[14] <= wdata;
+8'h78: reg_x[15] <= wdata;
+
+// Y matrix: 0x80-0xFF
+8'h80: reg_y[0]  <= wdata;
+8'h88: reg_y[1]  <= wdata;
+8'h90: reg_y[2]  <= wdata;
+8'h98: reg_y[3]  <= wdata;
+8'hA0: reg_y[4]  <= wdata;
+8'hA8: reg_y[5]  <= wdata;
+8'hB0: reg_y[6]  <= wdata;
+8'hB8: reg_y[7]  <= wdata;
+8'hC0: reg_y[8]  <= wdata;
+8'hC8: reg_y[9]  <= wdata;
+8'hD0: reg_y[10] <= wdata;
+8'hD8: reg_y[11] <= wdata;
+8'hE0: reg_y[12] <= wdata;
+8'hE8: reg_y[13] <= wdata;
+8'hF0: reg_y[14] <= wdata;
+8'hF8: reg_y[15] <= wdata;
+
+// Parameters
+8'hC0: reg_epsilon <= wdata;
+8'hC8: reg_eta     <= wdata;
+8'hD0: reg_gamma   <= wdata;
+8'hD8: reg_mix     <= wdata;
+
+// Control
+8'hE8: begin
+reg_start_tensor <= wdata[0];
+reg_start_poler  <= wdata[1];
+end
+
+default: ;
+endcase
+end else begin
+// Auto-clear start signals
+if (tp_valid)    reg_start_tensor <= 1'b0;
+if (poler_done)  reg_start_poler  <= 1'b0;
+end
+end
+
+// ========================================================================
+// Register Read Interface
+// ========================================================================
+always @(*) begin
+rdata = {DATA_WIDTH{1'b0}};
+ready = 1'b1;
+case (addr[7:0])
+8'hEC: rdata = {62'd0, poler_converged, busy};
+default: ;
+endcase
+end
+
+endmodule

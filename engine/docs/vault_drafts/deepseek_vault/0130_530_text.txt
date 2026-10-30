@@ -1,0 +1,3 @@
+aider/aider/repomap.py                          # Repository Map
+aider/aider/repo.py                             # Git operations
+aider/aider/coders/context_coder.py             # Context management

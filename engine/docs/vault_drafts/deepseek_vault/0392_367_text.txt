@@ -1,0 +1,84 @@
+https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/
+https://www.nand2tetris.org/course
+https://www.nand2tetris.org/book
+https://diveintosystems.org/book/
+https://www.bottomupcs.com/
+https://computationstructures.org/
+https://faculty.etsu.edu/tarnoff/138292/
+https://docs.nvidia.com/cuda/pdf/CUDA_C_Programming_Guide.pdf
+https://docs.nvidia.com/cuda/cuda-c-programming-guide/
+https://docs.nvidia.com/cuda/
+https://developer.nvidia.com/blog/programming-tensor-cores-cuda-9/
+https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/
+https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/
+https://docs.nvidia.com/cuda/cublas/
+https://cs149.stanford.edu/
+https://quantum.country/
+http://www.scholarpedia.org/article/Quantum_computing
+https://quantumai.google/cirq/tutorials
+https://quantumcomputingreport.com/
+https://arxiv.org/abs/quant-ph/9705031
+https://arxiv.org/abs/2106.08045
+https://arxiv.org/abs/2012.07805
+https://arxiv.org/abs/2006.01694
+https://arxiv.org/abs/0808.1862
+https://arxiv.org/abs/2103.00591
+https://arxiv.org/abs/1906.08949
+https://arxiv.org/abs/1906.05257
+https://arxiv.org/abs/2002.09468
+https://arxiv.org/abs/1806.07404
+https://arxiv.org/abs/1806.07366
+https://arxiv.org/abs/2106.08769
+https://arxiv.org/abs/2305.01460
+https://arxiv.org/abs/2210.08008
+https://arxiv.org/abs/2202.06555
+https://arxiv.org/abs/2104.06807
+https://arxiv.org/abs/2008.05090
+https://arxiv.org/abs/2008.02217
+https://arxiv.org/abs/2006.12869
+https://arxiv.org/abs/2011.01948
+https://arxiv.org/abs/2105.02219
+https://arxiv.org/abs/2101.01861
+https://arxiv.org/abs/quant-ph/9801041
+https://riscv.org/technical/specifications/
+https://www.oracle.com/servers/technologies/opensparc-overview.html
+https://iqim.caltech.edu/
+https://arxiv.org/pdf/quant-ph/9705031
+https://arxiv.org/pdf/0808.1862
+https://arxiv.org/pdf/2103.00591
+https://arxiv.org/pdf/1906.08949
+https://arxiv.org/pdf/1906.05257
+https://arxiv.org/pdf/2002.09468
+https://arxiv.org/pdf/1806.07404
+https://arxiv.org/pdf/1806.07366
+https://arxiv.org/pdf/2106.08769
+https://arxiv.org/pdf/2305.01460
+https://arxiv.org/pdf/2210.08008
+https://arxiv.org/pdf/2202.06555
+https://arxiv.org/pdf/2104.06807
+https://arxiv.org/pdf/2008.05090
+https://arxiv.org/pdf/2008.02217
+https://arxiv.org/pdf/2006.12869
+https://arxiv.org/pdf/2011.01948
+https://arxiv.org/pdf/2105.02219
+https://arxiv.org/pdf/2101.01861
+https://arxiv.org/pdf/quant-ph/9801041
+https://arxiv.org/pdf/2106.08045
+https://arxiv.org/pdf/2012.07805
+https://arxiv.org/pdf/2006.01694
+документ DjVu чем откривать ?
+Thought for 7 seconds
+
+Користувач питає, як відкривати файли DjVu. Потрібно надати інструкції для різних операційних систем (Windows, macOS, Linux) та платформ (мобільні пристрої, веб-переглядачі). Також можна згадати про конвертацію в інші формати. План пошуку вже надано. Виконаємо пошук згідно з планом.
+
+Found 46 web pages
+
+Результати пошуку надають багато варіантів для різних платформ. Тепер потрібно відкрити найбільш релевантні сторінки, щоб отримати детальні інструкції.
+
+Read 18 pages
+WinDjView » Homepage - SourceForge
+DjVu Book Reader - Free download and install on Windows
+How to Open DjVu Files on PC: 6 Ways in 2025
+DjVu Reader - App Store - Apple
+8 Best DJVU Readers for Mac (macOS Tahoe Verified, 2025)
+View All

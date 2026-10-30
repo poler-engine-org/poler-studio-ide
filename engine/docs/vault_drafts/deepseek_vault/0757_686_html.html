@@ -1,0 +1,10 @@
+document.getElementById('btn-magnetic').addEventListener('click', () => {
+showMagneticFields = !showMagneticFields;
+document.getElementById('btn-magnetic').classList.toggle('active', showMagneticFields);
+// Тут можна додати візуалізацію магнітних полів
+});
+
+document.getElementById('btn-asteroids').addEventListener('click', () => {
+asteroidBelt.visible = !asteroidBelt.visible;
+document.getElementById('btn-asteroids').classList.toggle('active', asteroidBelt.visible);
+});

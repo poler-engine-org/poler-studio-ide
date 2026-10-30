@@ -1,0 +1,2 @@
+alacritty/alacritty/src/                        # Terminal emulator
+alacritty/alacritty_terminal/src/               # PTY handling

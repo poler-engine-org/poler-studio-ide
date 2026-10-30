@@ -1,0 +1,6 @@
+frontend/app/block/
+├── block.tsx           # Главный компонент
+├── blockframe.tsx      # Рамка блока
+├── blockframe-header.tsx # Заголовок
+├── block.scss          # Стили
+└── blocktypes.ts       # Типы

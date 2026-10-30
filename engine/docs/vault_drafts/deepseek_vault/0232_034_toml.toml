@@ -1,0 +1,6 @@
+[dependencies]
+octocrab = "0.39"
+
+Пример базового клиента:
+
+rust

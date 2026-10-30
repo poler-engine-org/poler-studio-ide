@@ -1,0 +1,3 @@
+// Добавь в скрипт камеры
+Camera cam = GetComponent<Camera>();
+cam.fieldOfView = Mathf.Lerp(60, 80, currentSpeed / maxSpeed);

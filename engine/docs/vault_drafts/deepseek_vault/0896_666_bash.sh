@@ -1,0 +1,7 @@
+# Завершим все процессы Wine
+wineserver -k
+
+# Перезапустим установщик
+export WINEPREFIX="/run/media/vitalij/8464fd5c-cb5b-4dca-bb66-3e2f0f3cf559/GenshinWine"
+cd ~/Завантаження
+wine GenshinImpact_install_ua_3ce6204d4a0b.exe

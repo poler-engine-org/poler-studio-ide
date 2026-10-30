@@ -1,0 +1,30 @@
+[package]
+name = "pqc"
+description = "POLER Quantum Core: statevector engine with Ry(arccos p) ansatz, Born sampling and LENS product engine - zero external dependencies, SIMD-friendly kernels"
+version.workspace = true
+edition.workspace = true
+# POLER SAML v1.0 (unification 2026-10-22): явно, без workspace-наследования —
+# пермиссивное "MIT" в метаданных противоречило коммерческой модели.
+license-file = "../../LICENSE.md"
+repository.workspace = true
+authors.workspace = true
+keywords = ["quantum", "statevector", "born-sampling", "simd", "simulation"]
+categories = ["science", "simulation"]
+
+[dependencies]
+pqw = { path = "../pqw" }
+
+[[bin]]
+name = "pqc"
+path = "src/bin/pqc.rs"
+
+[[bin]]
+name = "pqc-parity"
+path = "src/bin/pqc-parity.rs"
+
+# ПРИМЕЧАНИЕ: таргеты poler-bio и poler-unicode-compress объявлялись
+# здесь ранее, но их исходники (src/bin/poler-bio.rs,
+# src/bin/poler-unicode-compress.rs) в этом репозитории никогда не
+# существовали — «can't find bin» валил ВСЕ cargo-джобы CI
+# (--workspace --all-targets). Убраны; при переносе бинов из монорепо
+# добавлять вместе с исходниками.

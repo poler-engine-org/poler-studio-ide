@@ -1,0 +1,7 @@
+running 5 tests
+test test_phase0_energy_physics ... ok
+test test_phase0_empty_dict_convergence ... ok
+test test_phase0_python_bridge ... ok
+test test_phase0_populated_dict_convergence ... ok
+test test_phase0_multiple_impulses ... ok
+test result: ok. 5 passed; 0 failed; finished in 2.30s

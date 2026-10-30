@@ -1,0 +1,6 @@
+waveterm/frontend/app/block/block.tsx           # Block UI
+waveterm/frontend/app/aipanel/aipanel.tsx       # AI Panel
+waveterm/pkg/waveai/waveai.go                   # AI Backend
+waveterm/pkg/waveai/anthropicbackend.go         # Anthropic
+waveterm/pkg/waveai/openaibackend.go            # OpenAI/Ollama
+waveterm/pkg/blockcontroller/blockcontroller.go # Block Logic

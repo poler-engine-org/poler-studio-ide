@@ -1,0 +1,2 @@
+T = lim_{ΔΣ → 0} ΔΣ / ΔI(Fₙ) = const
+text

@@ -1,0 +1,3 @@
+Zone 0 [input]:  active=8,  max=3.000
+Zone 1 [hidden]: active=42, max=11.8
+Zone 2 [output]: active=150, max=10.3  ← РАБОТАЕТ!

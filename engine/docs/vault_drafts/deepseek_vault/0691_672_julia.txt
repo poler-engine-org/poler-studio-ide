@@ -1,0 +1,23 @@
+module SynapticDynamics
+
+export ConstraintOperators, SemanticState, AttractorSolver
+export define_constraint, solve_attractor, project_to_text
+
+# Ядро динамической системы
+include("operators.jl")
+include("constraints.jl")
+include("dynamics.jl")
+include("projection.jl")
+
+# Формальные системы
+include("grammar/formal_grammars.jl")
+include("logic/first_order_logic.jl")
+include("ontology/description_logic.jl")
+
+# Инструменты анализа
+include("analysis/attractor_analysis.jl")
+include("inverse/text_to_state.jl")
+
+end
+2. Создать продакшен-ядро на Rust для ODE решателя:
+rust

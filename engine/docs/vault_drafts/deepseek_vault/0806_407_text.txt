@@ -1,0 +1,11 @@
+Web Inspector Lite
+TAG: <button>
+ID: none
+CLASS: source-stretched-button ng-tns-c1092337831-2
+TEXT:
+
+Текст всередині кнопки відсутній (порожній). CLASS містить два класи: source-stretched-button та ng-tns-c1092337831-2 (схоже на автоматично згенерований Angular).
+
+DeepThink
+Search
+AI-generated, for reference only

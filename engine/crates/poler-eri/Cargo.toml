@@ -1,0 +1,16 @@
+[package]
+name = "poler-eri"
+version = "3.2.0"
+edition = "2021"
+description = "POLER-ERI: Quantum-Inspired ERI Meta-Compiler with R1CS + Crystallization + Archetype Algebra"
+readme = "README.md"
+# POLER SAML v1.0 (unification 2026-10-22): без license-поля крейт публиковался
+# бы с неопределённым статусом прав ("all rights reserved" по умолчанию).
+license-file = "../../LICENSE.md"
+
+[dependencies]
+libm = "0.2"
+
+[[bin]]
+name = "poler-eri"
+path = "src/bin/poler_eri.rs"

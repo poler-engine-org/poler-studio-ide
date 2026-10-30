@@ -1,0 +1,4 @@
+poler-integration/
+├── poler_v6.2.py           # обновлённый POLER с новыми эндпоинтами
+├── requirements.txt        # requests, beautifulsoup4
+├── skill/

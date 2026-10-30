@@ -1,0 +1,11 @@
+# Cargo.toml
+[package]
+name = "synaptic-core"
+version = "0.1.0"
+
+[lib]
+name = "synaptics"
+crate-type = ["cdylib"]
+
+[dependencies]
+ndarray = "0.15"

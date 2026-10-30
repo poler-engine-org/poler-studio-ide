@@ -1,0 +1,16 @@
+# Убедимся, что префикс Wine существует
+export WINEPREFIX="/run/media/vitalij/8464fd5c-cb5b-4dca-bb66-3e2f0f3cf559/GenshinWine"
+
+# Удалим старую ссылку если есть
+rm -f "$WINEPREFIX/dosdevices/d:"
+
+# Создадим правильную символическую ссылку
+ln -sf "/run/media/vitalij/8464fd5c-cb5b-4dca-bb66-3e2f0f3cf559" "$WINEPREFIX/dosdevices/d:"
+
+# Создадим папку для игры
+mkdir -p "/run/media/vitalij/8464fd5c-cb5b-4dca-bb66-3e2f0f3cf559/Games/Genshin Impact"
+
+# Перезапустим Wine
+wineserver -k
+3. Запустим установщик снова:
+bash

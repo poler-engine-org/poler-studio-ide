@@ -1,0 +1,7 @@
+// В C++ плагине для Godot
+godot::Image img = godot::Image::create_from_data(width, height, format, data);
+cv::Mat mat(img.get_height(), img.get_width(), CV_8UC4, img.get_data().ptrw());
+// Далее анализ (например, поиск «рваных» полигонов через поиск контуров)
+
+-
+30

@@ -1,0 +1,5 @@
+# Трансформер:
+# model = train(data) → learn_weights() → generate(text)
+
+# SCTP:
+# system = define_constraints() → find_attractor(state) → project(attractor)

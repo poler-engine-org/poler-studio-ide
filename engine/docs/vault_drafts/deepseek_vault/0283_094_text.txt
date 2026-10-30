@@ -1,0 +1,24 @@
+───────────┼───────────┼───────────│
+───────────┼───────────┼───────────
+W≈0.83   │   W≠0     │
+┼───────────┼───────────
+│            W≈0.81 │
+
+Let's verify R2C1 (left middle): Row2 (top) = ─ (yes). Row3 (right) = │ after "W≈0.83" (yes). Row3 (left) = starts with space (no). Row4 (bottom) = starts with spaces (no). Perfect.
+R3C3 (right bottom): Row4 (top) = ─ for C3 (yes, because ──────────── is there). Row5 (right) = ends with │ (yes). Row5 (left) = no │ between C2 and C3 (yes, just spaces). Row5 (bottom) = none (yes).
+
+This matches the user's description perfectly. I will also add a small note explaining it.
+
+Let's make the widths more balanced.
+Row1: ───────────┼───────────┼───────────│
+Row2: ───────────┼───────────┼───────────
+Row3: W≈0.83 │ W≠0 │ │ (I added a right border for R2C3 to keep it aligned).
+Row4: ┼───────────┼───────────│ (C1 has no line, C2 and C3 have lines, and a right border).
+Row5: │ W≈0.81 │ (C1 has a right border, C2 has no left border? Wait, C1 has a right border │, which is the left border of C2. That's fine. C2 has no right border (no │ before C3). So C3 has no left border. C3 has text and a right border │).
+
+Let's check the alignment of Row5. W≈0.81 is 7 characters. Let's put 2 spaces before it and 1 space after it, then │.
+│ W≈0.81 │
+Let's count: 11 spaces for C1, │ (1), 12 spaces for C2? Wait.
+Let me just paste it as a code block. The user will see it.
+
+Let me present it clearly.

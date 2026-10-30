@@ -1,0 +1,133 @@
+// Тестбенч для проверки асимметрии 0↮1
+module AsymmetryTestbench;
+
+reg clk;
+reg reset;
+reg [255:0] test_input;
+wire [255:0] test_output;
+wire [7:0] entropy;
+wire [15:0] energy;
+
+// Тестируемая сеть
+WavePropagationNetwork dut (
+.clk(clk),
+.reset(reset),
+.input_vector(test_input),
+.wave_speed(8'h04),
+.resonance_depth(8'h03),
+.output_vector(test_output),
+.system_entropy(entropy),
+.total_energy(energy)
+);
+
+// Генерация тактового сигнала
+initial begin
+clk = 0;
+forever #5 clk = ~clk;  // 100 МГц
+end
+
+// Тестовые последовательности
+initial begin
+$display("🧪 Начало тестирования асимметричной логики 0↮1");
+$display("=" * 60);
+
+// Инициализация
+reset = 1;
+test_input = 256'b0;
+#20;
+
+reset = 0;
+#10;
+
+// Тест 1: Чистый вакуум (все нули)
+$display("\n📭 Тест 1: Чистый вакуум");
+test_input = 256'b0;
+#100;
+check_asymmetry(test_output, "Вакуум сохранился");
+
+// Тест 2: Случайные импульсы на фоне вакуума
+$display("\n⚡ Тест 2: Импульсы на фоне вакуума");
+for (integer i = 0; i < 10; i = i + 1) begin
+test_input = $random;
+#50;
+
+// Проверка: вакуум (0) должен существовать всегда
+if (test_output !== 256'b0) begin
+$display("  Импульс %0d: создана информация", i);
+$display("  Энтропия: %0d, Энергия: %0d", entropy, energy);
+end
+end
+
+// Тест 3: Паттерн резонанса
+$display("\n🌀 Тест 3: Резонансные паттерны");
+test_input = 256'hAAAAAAAA_AAAAAAAA_AAAAAAAA_AAAAAAAA;
+#200;
+
+// Анализ распределения 0 и 1
+integer zeros = 0, ones = 0;
+for (integer i = 0; i < 256; i = i + 1) begin
+if (test_output[i]) ones = ones + 1;
+else zeros = zeros + 1;
+end
+
+$display("  Распределение: 0=%0d, 1=%0d", zeros, ones);
+$display("  Соотношение: %0f%%", (ones * 100.0) / 256.0);
+
+// Тест 4: Длительная эволюция
+$display("\n⏳ Тест 4: Длительная эволюция (1000 тактов)");
+for (integer t = 0; t < 1000; t = t + 1) begin
+test_input = test_input ^ (test_input >> 1);
+#10;
+
+if (t % 100 == 0) begin
+$display("  Такт %0d: Энтропия=%0d", t, entropy);
+end
+end
+
+$display("\n✅ Тестирование завершено");
+$display("=" * 60);
+$finish;
+end
+
+// Проверка асимметричного инварианта
+task check_asymmetry;
+input [255:0] state;
+input string description;
+begin
+// Инвариант: не может быть состояния где нет нулей вообще
+integer zero_count = 0;
+for (integer i = 0; i < 256; i = i + 1) begin
+if (!state[i]) zero_count = zero_count + 1;
+end
+
+if (zero_count == 0) begin
+$error("❌ Нарушение асимметрии: нет ни одного 0!");
+$error("   Описание: %s", description);
+end else begin
+$display("  ✓ %s: найдено %0d нулей", description, zero_count);
+end
+end
+endtask
+
+// Мониторинг в реальном времени
+always @(posedge clk) begin
+if (!reset) begin
+// Логирование изменений
+static reg [255:0] prev_output;
+integer changes = 0;
+
+for (integer i = 0; i < 256; i = i + 1) begin
+if (test_output[i] !== prev_output[i]) begin
+changes = changes + 1;
+end
+end
+
+if (changes > 50) begin
+$display("  🔄 Изменений: %0d, Энергия: %0d", changes, energy);
+end
+
+prev_output = test_output;
+end
+end
+
+endmodule

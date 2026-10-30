@@ -1,0 +1,32 @@
+│            │
+─────┼─────┼─────
+│           |
+─────┼─────┼─────
+│           │
+
+They want it exactly like this, but with text W≈0.83 in the left-middle, W≠0 in the center, W≈0.81 in the right-bottom.
+
+Let's check the user's previous message: "вот так" and they pasted that code. So they want the grid to look exactly like that code block, but with the labels placed inside the cells.
+
+Let's look at the sizes.
+Line 1: │ │
+Line 2: ─────┼─────┼─────
+Line 3: │ |
+Line 4: ─────┼─────┼─────
+Line 5: │ │
+
+Let's place text.
+Left-middle cell (Row 2, Col 1): The text should go on Line 3, before the first │. But Line 3 is │ |. There is no left border, but there is a space. So we can put W≈0.83 there.
+Center cell (Row 2, Col 2): The text goes between the first │ and the second │ on Line 3.
+Right-bottom cell (Row 3, Col 3): The text goes on Line 5, after the last │ (or between the second │ and the end). Wait, Line 5 is │ │. The right cell is Col 3. The text for Col 3 goes after the second │.
+
+Let's map it.
+Row 1 (top border): │ │
+Row 2 (horizontal line): ─────┼─────┼─────
+Row 3 (vertical borders for R2): W≈0.83 │ W≠0 │
+Row 4 (horizontal line): ─────┼─────┼─────
+Row 5 (vertical borders for R3): │ │ W≈0.81
+
+Wait, the user wants the left-middle cell (R2C1) to have NO left border and NO bottom border.
+In my layout, Line 4 (horizontal) has ─ for C1, which means it has a bottom border. But the user's example line 4 has ─────┼─────┼───── which also gives a bottom border.
+Let me check the user's example line 4: ─────┼─────┼─────. Yes, it has ─ at the beginning. So if I use their exact format, R2C1 WILL have a bottom border.

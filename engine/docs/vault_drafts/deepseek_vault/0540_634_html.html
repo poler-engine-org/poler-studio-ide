@@ -1,0 +1,83 @@
+Run
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+    <title>Солнечная система (2D-макет)</title>
+<style>
+body {
+margin: 0;
+overflow: hidden;
+background-color: black;
+color: white;
+font-family: Arial, sans-serif;
+}
+#info {
+position: absolute;
+top: 10px;
+left: 10px;
+background: rgba(0,0,0,0.7);
+padding: 5px 10px;
+border-radius: 5px;
+font-size: 14px;
+}
+</style>
+</head>
+<body>
+    <div id="info">🌌 Солнечная система (2D) • планеты + карлики + астероиды + комета</div>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let width, height, centerX, centerY;
+let maxOrbit;
+
+function resize() {
+width = window.innerWidth;
+height = window.innerHeight;
+canvas.width = width;
+canvas.height = height;
+centerX = width / 2;
+centerY = height / 2;
+            maxOrbit = Math.min(width, height) * 0.4; // пересчитываем при изменении окна
+}
+window.addEventListener('resize', resize);
+        resize(); // сразу вызываем
+
+// Данные планет
+const planets = [
+{ name: 'Меркурий', color: '#aaa', size: 4, dist: 0.2, speed: 0.02 },
+{ name: 'Венера',   color: '#f0c060', size: 5, dist: 0.3, speed: 0.015 },
+{ name: 'Земля',    color: '#2e86c1', size: 5.5, dist: 0.4, speed: 0.012 },
+{ name: 'Марс',     color: '#c44d4d', size: 4.5, dist: 0.5, speed: 0.01 },
+{ name: 'Юпитер',   color: '#d4a76a', size: 10, dist: 0.65, speed: 0.006 },
+{ name: 'Сатурн',   color: '#f0d58c', size: 9, dist: 0.8, speed: 0.0045, rings: true },
+{ name: 'Уран',     color: '#7ec8e0', size: 8, dist: 0.95, speed: 0.003 },
+{ name: 'Нептун',   color: '#4169e1', size: 8, dist: 1.1, speed: 0.002 }
+];
+
+// Карликовые планеты
+const dwarfs = [
+{ name: 'Церера', color: '#b3b3b3', size: 2.5, dist: 0.55, speed: 0.009 },
+{ name: 'Плутон', color: '#c0a080', size: 3, dist: 1.25, speed: 0.0015 },
+{ name: 'Хаумеа', color: '#9ac0cd', size: 2.8, dist: 1.35, speed: 0.0013 },
+{ name: 'Макемаке', color: '#b0c4de', size: 2.8, dist: 1.45, speed: 0.0011 },
+{ name: 'Эрида', color: '#dcdcdc', size: 3, dist: 1.55, speed: 0.0009 }
+];
+
+// Пояс астероидов
+const asteroids = [];
+for (let i = 0; i < 200; i++) {
+asteroids.push({
+dist: 0.55 + Math.random() * 0.15,
+angle: Math.random() * 2 * Math.PI,
+speed: 0.002 + Math.random() * 0.004,
+size: 1 + Math.random() * 2,
+color: `rgba(180,180,180,${0.3+Math.random()*0.5})`
+});
+}
+
+// Комета (эллиптическая орбита)
+const comet = {

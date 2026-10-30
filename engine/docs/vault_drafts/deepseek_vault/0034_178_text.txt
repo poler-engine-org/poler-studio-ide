@@ -1,0 +1,11 @@
+Выполните команду для получения изменений из текущей ветки:
+
+git pull origin $(git branch --show-current)
+
+Затем проверьте статус файлов:
+
+git status
+
+И запустите тест:
+
+python3 test_super_z.py

@@ -1,0 +1,3 @@
+cp merge.sh /tmp/
+chmod +x /tmp/merge.sh
+/tmp/merge.sh

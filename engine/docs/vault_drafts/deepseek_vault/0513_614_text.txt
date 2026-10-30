@@ -1,0 +1,3 @@
+poler/
+├── __init__.py
+├── core.py                 # класс POLERUnifiedSystem (из POLER_UNIFIED_ALGORITHM.py)

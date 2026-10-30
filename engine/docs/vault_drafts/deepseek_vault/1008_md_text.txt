@@ -1,0 +1,2 @@
+OLD: neuron = function, synapse = weight
+NEW: thinking = state dynamics under operator control

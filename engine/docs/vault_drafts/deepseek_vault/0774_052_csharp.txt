@@ -1,0 +1,14 @@
+// Получаем доступ к текстуре в видеопамяти (без копирования!)
+RenderTexture.active = targetTexture;
+// Отправляем текстуру сразу в нейросеть (Sentis) на GPU
+inputTensor = TextureConverter.ToTensor(targetTexture, texTransform);
+worker.Schedule(inputTensor); // Инференс модели на видеокарте
+
+-
+-
+6
+
+Б) Unreal Engine (C++ + OpenCV)
+Интегрируем OpenCV напрямую в C++ код движка:
+
+cpp

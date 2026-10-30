@@ -1,0 +1,2 @@
+find /home/vitalij/UE5_Source/Engine/Binaries -name "*.debug" -delete
+find /home/vitalij/UE5_Source/Engine/Binaries -name "*.sym" -delete

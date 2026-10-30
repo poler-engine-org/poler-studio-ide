@@ -1,0 +1,5 @@
+source "$HOME/.cargo/env"
+cd /home/z/my-project/download/poler-unified
+cargo run --release --bin poler-dynamics -- h2    # Молекула H₂
+cargo run --release --bin poler-dynamics -- h2o   # Вода
+cargo run --release --bin poler-dynamics -- li10  # Цепочка Li₁₀

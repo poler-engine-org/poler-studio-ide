@@ -1,0 +1,19 @@
+# Формальная грамматика как ограничения
+using ContextFreeGrammars
+
+# Определяем грамматику в BNF
+grammar = """
+S → NP VP
+NP → Det N | N
+VP → V NP | V
+Det → "the" | "a"
+N → "cat" | "dog"
+V → "chases" | "sees"
+"""
+
+# Компилируем в функцию ограничения
+syntactic_constraint = compile_grammar_to_constraint(grammar)
+
+Интеграция с формальной логикой:
+
+julia

@@ -1,0 +1,23 @@
+│            │
+─────┼─────┼─────
+│           |
+─────┼─────┼─────
+│           │
+
+If we consider a 3x3 grid (3 rows, 3 columns).
+The user wants:
+
+Left middle cell missing left and bottom borders.
+
+Right bottom cell missing left and bottom borders.
+
+Let's build a grid with the specified style:
+Use ─ for horizontal borders.
+Use │ for vertical borders.
+Use ┼ for intersections (crosspoints).
+
+Grid structure (3 rows, 3 cols).
+Row 1 (top): ───────────┼───────────┼─────────── (but the user's top row has no ─? Wait. The user's top row is │ │. That means the top border of the left column is missing? Actually, usually, a full grid has horizontal lines.
+Let's draw a standard 3x3 grid:
+
+text

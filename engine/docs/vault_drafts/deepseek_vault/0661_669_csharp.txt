@@ -1,0 +1,5 @@
+// Простейший скрипт камеры, который можно скопировать
+using UnityEngine;
+
+public class ThirdPersonCamera : MonoBehaviour
+{

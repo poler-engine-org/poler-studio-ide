@@ -1,0 +1,16 @@
+sinusoidal_synaptic_network/
+├── 📁 models/                       # Модели (создаются автоматически)
+├── 📁 checkpoints/                  # Чекпоинты обучения
+├── 📁 data/                         # Датасеты
+├── cse_encoder.py                  # CSE кодирование
+├── synaptic_core.py                # Ядро SSN
+├── sample.py                       # StreamFlow Sampling
+├── initialize_ssn.py              # Инициализатор моделей
+├── ssn_loader.py                  # Универсальный загрузчик
+├── generate_unconditional_samples.py  # Автономная генерация
+├── interactive_conditional_samples.py # Интерактивный режим
+├── requirements.txt               # Зависимости
+├── setup.py                       # Установка пакета
+├── README.md                      # Документация
+├── .gitignore                    # Игнорируемые файлы
+└── LICENSE                       # Лицензия MIT

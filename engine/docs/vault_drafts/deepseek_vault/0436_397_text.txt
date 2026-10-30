@@ -1,0 +1,17 @@
+T = \lim_{\Delta\Sigma \to 0} \frac{\Delta\Sigma}{\Delta I(F_n)} = \text{const}
+
+and then showed a broken version: *T*=limΔΣ→0Δ*I*(*F**n*)ΔΣ=const. That broken version seems to be a Markdown interpretation where the LaTeX was not rendered, and asterisks were used for italics, causing parts to be italicized and subscripts/superscripts broken. Similarly for the second formula.
+
+The user's final line: F = \| g(p) - \Omega(o) \|_{G}^{2} + \lambda R_{L}(p) не как видишь ломаеться means "as you can see, it's breaking".
+
+So the issue is likely that the environment where they are writing (maybe a Markdown editor, this chat interface, or their own document system) is not rendering LaTeX properly, or they are using $ or $$ incorrectly. In the chat, we are using plain text, and the assistant can render LaTeX with $$ or $ for inline, but the user might have copied text from a source where asterisks were used for italic, causing confusion.
+
+I need to explain why the formulas are breaking and provide a solution. The assistant should note that the chat can display LaTeX within $$ or $, and if their document system doesn't support MathJax, they need to either enable it or use the proper syntax.
+
+I'll craft a response: explain the cause of the breakage (Markdown italic markers clashing with LaTeX), provide the correct way to write them in both a LaTeX-enabled environment and plain text with Unicode if necessary, and offer to check the rendering in the chat. I'll also point out that their broken versions show that the system is interpreting * as italics, which disrupts LaTeX.
+
+Finally, I'll ensure the final answer is helpful and addresses the exact problem.
+
+Проблема в том, что ваш редактор или просмотрщик не обрабатывает LaTeX, а пытается интерпретировать символы как Markdown. Из-за этого:
+
+*T* превращается в курсив;

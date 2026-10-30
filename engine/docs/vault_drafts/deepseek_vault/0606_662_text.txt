@@ -1,0 +1,5 @@
+Zone 0 (Input):  2048 elements, threshold=1.0, decay=1.0
+↓ Links (30% density, w=0.5-1.0)
+Zone 1 (Hidden): 50 elements, threshold=0.15, decay=0.99
+↓ Links (40% density, w=0.2-0.5)
+Zone 2 (Output): 256 elements, threshold=0.1, decay=0.98

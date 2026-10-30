@@ -1,0 +1,5 @@
+T = {int, float, str, bool, list[T], dict[T1, T2], function[T→T], None}
+
+Операции над типами:
+
+text

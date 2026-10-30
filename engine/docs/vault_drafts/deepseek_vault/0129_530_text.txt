@@ -1,0 +1,4 @@
+zed/crates/terminal/src/terminal.rs             # Terminal Core
+zed/crates/agent/src/agent.rs                   # AI Agent
+zed/crates/agent/src/thread.rs                  # AI Threads
+zed/crates/gpui/                                # GPU UI Framework

@@ -1,0 +1,3 @@
+/home/vitalij/Завантажене/ппппп/pyscf-master/pyscf/geomopt/libcint/build/libcint.so
+Как загрузить libcint.so в Python
+python

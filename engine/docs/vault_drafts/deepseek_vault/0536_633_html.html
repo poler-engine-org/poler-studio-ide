@@ -1,0 +1,79 @@
+Run
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+    <title>Астрометрия: Параллакс линз и поиск Этерии</title>
+<style>
+body { margin: 0; overflow: hidden; background-color: #050508; color: #00ffcc; font-family: 'Courier New', Courier, monospace; }
+#ui-panel {
+position: absolute; top: 15px; left: 15px; background: rgba(0, 15, 30, 0.9);
+padding: 20px; border: 1px solid #005577; border-radius: 8px;
+width: 400px; max-height: 90vh; overflow-y: auto;
+box-shadow: 0 0 20px rgba(0,255,200,0.2);
+z-index: 10;
+}
+h2 { margin: 0 0 10px 0; font-size: 16px; color: #fff; border-bottom: 1px solid #005577; padding-bottom: 5px; }
+.data-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+.value { color: #fff; font-weight: bold; }
+.alert { color: #ff3366; }
+.lens1 { color: #ffaa00; }
+.lens2 { color: #ff55aa; }
+canvas { display: block; }
+.btn { display: block; width: 100%; padding: 8px; margin: 10px 0; background: #003344; color: #00ffcc; border: 1px solid #00ffcc; cursor: pointer; }
+.btn:hover { background: #005577; }
+</style>
+</head>
+<body>
+<div id="ui-panel">
+        <h2>🔭 Поиск гравитационных линз</h2>
+<div class="data-row">
+            <span>Статус коллиматора:</span>
+<span id="collimator-status" class="value alert">АКТИВЕН</span>
+</div>
+<div class="data-row">
+            <span>Параллакс Этерии:</span>
+<span id="parallax-etheria" class="value alert">0.0000"</span>
+</div>
+
+<hr style="border-color:#005577">
+
+        <h3>Линза M1 (ближняя)</h3>
+<div class="data-row">
+<span class="lens1">Угол на M1:</span>
+<span id="angle-m1" class="value lens1">0.000°</span>
+</div>
+<div class="data-row">
+            <span class="lens1">Параллакс M1:</span>
+<span id="parallax-m1" class="value lens1">0.0000"</span>
+</div>
+<div class="data-row">
+            <span class="lens1">Расстояние до M1 (по параллаксу):</span>
+<span id="dist-m1" class="value lens1">—</span>
+</div>
+
+        <h3>Линза M2 (дальняя)</h3>
+<div class="data-row">
+<span class="lens2">Угол на M2:</span>
+<span id="angle-m2" class="value lens2">0.000°</span>
+</div>
+<div class="data-row">
+            <span class="lens2">Параллакс M2:</span>
+<span id="parallax-m2" class="value lens2">0.0000"</span>
+</div>
+<div class="data-row">
+            <span class="lens2">Расстояние до M2 (по параллаксу):</span>
+<span id="dist-m2" class="value lens2">—</span>
+</div>
+
+<hr style="border-color:#005577">
+
+        <h3>Фокус системы (Этерия)</h3>
+<div class="data-row">
+            <span>Вычисленное расстояние:</span>
+<span id="focus-dist" class="value">—</span>
+</div>
+<div class="data-row">
+            <span>Направление (фикс.):</span>
+<span id="focus-dir" class="value">0.0° (постоянно)</span>
+</div>

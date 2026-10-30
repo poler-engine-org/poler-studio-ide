@@ -1,0 +1,5 @@
+continue/
+├── core/           # Core logic
+├── extensions/     # VSCode, JetBrains
+├── server/         # Backend
+└── binary/         # Native binaries

@@ -1,0 +1,57 @@
+{
+ "theorem": "I.1",
+ "cycle": "D",
+ "subject": "J = U − Uᵀ ⟹ d/dt‖ψ‖² = 0; Σθ-инвариант precess_step",
+ "code": [
+  "docs/mathematical-treatise/VOLUME_I (теория so(n))",
+  "crates/pqc/src/gyro.rs#L1-L16 (J = A − Aᵀ, докстринг)",
+  "crates/pqc/src/gyro.rs#L279-L298 (skew_pairs: J_ij = w_ab − w_ba)",
+  "crates/pqc/src/gyro.rs#L632-L645 (precess_step — дискретный инвариант)",
+  "crates/pqc/src/born.rs#L19 (гейт |‖ψ‖−1| ≤ 1e-9)"
+ ],
+ "commit": "38a862a",
+ "sympy": {
+  "sympy_version": "1.14.0",
+  "results": {
+   "antisymmetry_Jt_plus_J_is_zero": true,
+   "quadratic_form_psi_JtJ_psi_is_zero": true,
+   "derivative_identity_lhs_is_zero": true,
+   "trace_is_zero": true,
+   "diag_is_zero": true
+  },
+  "verdict": "AXIOM CONFIRMED (символьно)"
+ },
+ "numpy": {
+  "numpy_version": "2.5.3",
+  "n": 64,
+  "T": 50.0,
+  "h": 0.01,
+  "steps": 5000,
+  "skew_max_norm_drift": 0.0006158876072860364,
+  "skew_final_norm_drift": 0.0006158876072860364,
+  "control_max_norm_drift": Infinity,
+  "control_vs_skew_drift_ratio": Infinity,
+  "rk4_convergence_drifts_h_0.02_0.01_0.005": [
+   0.0038441913581964693,
+   0.00012337963887298908,
+   3.870791992710565e-06
+  ],
+  "rk4_measured_order": 4.977917827568579,
+  "rk4_order_at_least_3.5": true,
+  "spectrum_max_Re_lambda": 8.881784197001252e-16,
+  "spectrum_max_Im_lambda": 20.640649931301414,
+  "spectrum_purely_imaginary": true,
+  "verdict": "AXIOM CONFIRMED (спектр чисто мнимый; дрейф = O(h⁴)-ошибка интегратора, порядок измерен 4.98 ≥ 4; контроль расходится)"
+ },
+ "precess_step_invariant": {
+  "trials": 1000,
+  "formula_vs_dense_matrix_mismatches": 0,
+  "lockstep_max_rel_diff_drift_50x1000steps": 5.157840695632237e-15,
+  "global_sigma_theta_drift_example": -129.961561907433,
+  "global_sigma_theta_conservable": false,
+  "note": "Σθ НЕ инвариант направленного транспорта (в отличие от симметричного Курамото ±torque); заявка |e^{iθ}|=1 (docstring L631) — тривиально верна; норма сохраняется линейным ротором J = A − Aᵀ (теорема I.1), а не фазовым транспортом",
+  "code": "crates/pqc/src/gyro.rs#L632-645 (precess_step: −torque ОБОИМ концам)",
+  "rust_test": "gyro::tests::precess_step_edge_lockstep_preserves_pair_difference",
+  "verdict": "CODE PROPERTIES CONFIRMED (lockstep-инвариант ребра; соответствие формуле; Σθ-неинвариантность задокументирована)"
+ }
+}

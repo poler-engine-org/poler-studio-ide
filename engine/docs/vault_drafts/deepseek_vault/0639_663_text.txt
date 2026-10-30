@@ -1,0 +1,5 @@
+gcc -O2 -std=c99 system_core.c language_core.c main.c -o lang_brain -lm
+
+Запуск:
+
+text

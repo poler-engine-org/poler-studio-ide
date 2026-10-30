@@ -1,0 +1,5 @@
+Makefile:42: *** missing separator. Stop.
+
+или
+
+text

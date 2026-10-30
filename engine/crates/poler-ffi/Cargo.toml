@@ -1,0 +1,22 @@
+[package]
+name = "poler-ffi"
+version = "0.60.0"
+edition = "2021"
+rust-version = "1.80"
+authors = ["POLER Engineering Core"]
+description = "C-ABI слой POLER ENGINE для внешних движков рендера (Panda3D, Godot, O3DE): вода, вихри, физика без f32-дрейфа"
+repository = "https://github.com/poler-engine-org/poler-engine"
+# POLER SAML v1.0 (unification 2026-10-22): без license-поля крейт публиковался
+# бы с неопределённым статусом прав ("all rights reserved" по умолчанию).
+license-file = "../../LICENSE.md"
+keywords = ["ffi", "game", "physics", "water", "c-abi"]
+categories = ["game-engines", "external-ffi-bindings"]
+publish = false
+
+# cdylib: единственный артефакт — libpoler_ffi.so для ctypes/cffi
+[lib]
+name = "poler_ffi"
+crate-type = ["cdylib"]
+
+[dependencies]
+poler-engine = { path = "../.." }

@@ -1,0 +1,163 @@
+import json
+import subprocess
+import jsonschema
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+import concurrent.futures
+
+class SkillRegistry:
+def __init__(self, skills_dir: Path):
+self.skills_dir = skills_dir
+self.manifests: Dict[str, Dict] = {}
+self._load_manifests()
+
+def _load_manifests(self):
+for skill_path in self.skills_dir.iterdir():
+manifest_file = skill_path / "manifest.json"
+if manifest_file.exists():
+with open(manifest_file) as f:
+self.manifests[skill_path.name] = json.load(f)
+
+def get_manifest(self, skill_name: str) -> Optional[Dict]:
+return self.manifests.get(skill_name)
+
+def get_dependencies(self, skill_name: str) -> List[str]:
+manifest = self.get_manifest(skill_name)
+return manifest.get("dependencies", []) if manifest else []
+
+def get_triggers(self, skill_name: str) -> Dict:
+manifest = self.get_manifest(skill_name)
+return manifest.get("triggers", {}) if manifest else {}
+
+class Planner:
+def __init__(self, registry: SkillRegistry):
+self.registry = registry
+
+def plan(self, user_query: str, input_file: Optional[str] = None) -> List[str]:
+# Пока простая эвристика, позже можно использовать LLM
+query_lower = user_query.lower()
+if "pdf" in query_lower and ("анализ" in query_lower or "проанализируй" in query_lower):
+return ["pdf-ocr", "poler-toolkit"]
+        elif "презентация" in query_lower or "слайд" in query_lower:
+# может потребоваться poler + charts + pptx
+return ["poler-toolkit", "charts", "pptx"]
+elif "отчёт" in query_lower or "report" in query_lower:
+return ["poler-toolkit", "report"]
+else:
+return ["poler-toolkit"]
+
+class Executor:
+def __init__(self, skills_dir: Path, registry: SkillRegistry):
+self.skills_dir = skills_dir
+self.registry = registry
+
+def run(self, skill_name: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+manifest = self.registry.get_manifest(skill_name)
+if not manifest:
+raise ValueError(f"Skill {skill_name} not found")
+
+# Validate input (optional)
+# Мы можем проверить по схеме, но пока пропустим
+
+# Поиск основного скрипта (может быть main.py, run.py, etc.)
+script_path = self._find_script(skill_name)
+if not script_path:
+raise FileNotFoundError(f"No script found for skill {skill_name}")
+
+# Запуск
+cmd = ["python", str(script_path)]
+# Передаем входные данные как JSON через stdin
+process = subprocess.run(
+cmd,
+input=json.dumps(input_data),
+capture_output=True,
+text=True
+)
+if process.returncode != 0:
+raise RuntimeError(f"Skill {skill_name} failed: {process.stderr}")
+
+output = json.loads(process.stdout)
+
+# Валидируем выход по схеме
+self._validate_output(output, manifest.get("outputs", {}).get("schema", {}))
+
+return output
+
+def _find_script(self, skill_name: str) -> Optional[Path]:
+skill_path = self.skills_dir / skill_name / "scripts"
+if not skill_path.exists():
+return None
+# Ищем .py файлы, которые могут быть точкой входа
+for candidate in ["main.py", "run.py", skill_name + ".py"]:
+full = skill_path / candidate
+if full.exists():
+return full
+# Или любой .py в scripts
+py_files = list(skill_path.glob("*.py"))
+if py_files:
+            return py_files[0]  # берем первый
+return None
+
+def _validate_output(self, output: Dict, schema: Dict):
+# Простая проверка наличия обязательных полей
+if not schema:
+return
+required = schema.get("required", [])
+for field in required:
+if field not in output:
+raise ValueError(f"Missing required output field: {field}")
+# Можем добавить проверку типов и т.д.
+
+class Aggregator:
+def aggregate(self, results: Dict[str, Any]) -> Dict[str, Any]:
+# Просто возвращаем последний результат (или объединяем)
+# Здесь можно реализовать более сложную логику
+if not results:
+return {"status": "no results"}
+last_key = list(results.keys())[-1]
+return results[last_key]
+
+class Orchestrator:
+def __init__(self, skills_dir: Path):
+self.skills_dir = skills_dir
+self.registry = SkillRegistry(skills_dir)
+self.planner = Planner(self.registry)
+self.executor = Executor(skills_dir, self.registry)
+self.aggregator = Aggregator()
+
+def process(self, user_query: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
+plan = self.planner.plan(user_query, input_data.get("input_file"))
+results = {}
+current_input = input_data
+
+for skill_name in plan:
+print(f"Executing {skill_name}...")
+# Проверяем, есть ли зависимости, и если они не выполнены, можно добавить автоматически
+# Но пока считаем, что plan уже включает все нужные
+
+# Для первого скилла передаем входные данные
+if not results:
+result = self.executor.run(skill_name, current_input)
+else:
+# Для следующих — передаем выход предыдущего
+# Можно преобразовывать, если нужно
+result = self.executor.run(skill_name, {"input": results[plan[plan.index(skill_name)-1]]})
+results[skill_name] = result
+current_input = result
+
+final_answer = self.aggregator.aggregate(results)
+return final_answer
+
+# Пример использования
+if __name__ == "__main__":
+    skills_dir = Path("/path/to/skills")  # Замените на реальный путь
+orch = Orchestrator(skills_dir)
+result = orch.process(
+        "Проанализируй этот PDF и сделай отчет с графиками",
+{"input_file": "/path/to/document.pdf"}
+)
+print(json.dumps(result, indent=2, ensure_ascii=False))
+
+Теперь модификация ingest.py для возврата confidence и структурированного JSON. Предположим, что ingest.py использует argparse и выводит JSON. Мы добавим вычисление confidence.
+
+python

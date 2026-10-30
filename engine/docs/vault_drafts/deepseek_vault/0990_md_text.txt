@@ -1,0 +1,12 @@
+sinusoidal_synaptic_network/
+├── 📁 configs/              # Конфигурации
+├── 📁 checkpoints/          # Сохраненные модели
+├── 📁 data/                 # Датасеты
+├── encoder.py              # CSE энкодер (переименовать в cse_encoder.py)
+├── synaptic_core.py        # Ядро SSN
+├── sample.py              # StreamFlow Sampling
+├── generate_unconditional_samples.py  # Автономная генерация
+├── interactive_conditional_samples.py # Интерактивный режим
+├── main.py                # Главный скрипт
+├── requirements.txt       # Зависимости
+└── README.md             # Документация

@@ -1,0 +1,120 @@
+% Preparing document class and essential packages
+\documentclass[12pt]{article}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+% Setting up fonts
+\usepackage{noto}
+
+% Customizing section titles
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+
+\begin{document}
+
+% Title
+\begin{center}
+\textbf{\LARGE Універсальна Аналітична Модель}
+\end{center}
+
+\section{Фінальна Формула}
+\[
+F = \int_{t_0}^{t_n} \left[ \sum_{i=1}^N A_i(t) \cdot P[n]_i \cdot T(\Delta_i, D_i, K_i) \right] \cdot e^{-S(t)/k} \cdot C(\text{Input}, \Sigma, K_i) \, dt
+\]
+
+\section{Компоненти Моделі}
+\subsection{Вхідний сигнал ($I(t)$)}
+\[
+I(t) = \sum_{j=1}^N w_j \cdot V_j, \quad \sum w_j = 1.
+\]
+
+\subsection{Синтез ($S(t)$)}
+\[
+S(t) = \tau(I(t), D).
+\]
+
+\subsection{Моделювання ($M(t)$)}
+\[
+M(t) = W \cdot S(t), \quad W_{ij} = \cos(\theta_{ij}) \cdot A(D).
+\]
+
+\subsection{Активність ($A(t)$)}
+\[
+A(t) = \kappa \cdot d(o_i, o_j)^2 \cdot C_i \cdot \text{Norm}_{\text{att}}.
+\]
+
+\subsection{Накопичення ($P[n]$)}
+\[
+P[n] = \int_{t-n}^t A(t') \cdot e^{-\lambda(t-t')} \, dt'.
+\]
+
+\subsection{Базові вектори ($V_i$)}
+\[
+V_i = (0, \dots, 1, \dots, 0), \quad \text{одиниця на позиції } i.
+\]
+
+\subsection{Похідні вектори ($G_i$)}
+\[
+G_i = \tau\left(\sum_{j=1}^N w_{ij} \cdot V_j, D_i\right) \cdot A(D_i).
+\]
+
+\subsection{Матриця взаємодій ($W_{ij}$)}
+\[
+W_{ij} = \cos(\theta_{ij}) \cdot A(D), \quad \cos(\theta_{ij}) = \frac{V_i \cdot V_j}{\|V_i\| \cdot \|V_j\|}.
+\]
+
+\subsection{Обмеження ($Q_i$)}
+\[
+Q_i = -k_i \cdot H_i, \quad H_i = -\sum p_i \ln(p_i).
+\]
+
+\subsection{Ентропія ($S(t)$)}
+\[
+S(t) = -\sum p_i(t) \ln(p_i(t)).
+\]
+
+\subsection{Контекст ($C(\text{Input}, \Sigma, K_i)$)}
+\[
+C(\text{Input}, \Sigma, K_i) = \sum_{j=1}^N w_{ij} \cdot V_j \cdot \kappa(\text{Input}).
+\]
+
+\subsection{Трансформація ($T(\Delta_i, D_i, K_i)$)}
+\[
+T(\Delta_i, D_i, K_i) = \text{LSTM}(\text{Input}_i, K_i) + \alpha \cdot \text{k-means}(D_i).
+\]
+
+\subsection{Топологія ($\Sigma(t)$)}
+\[
+\Sigma(t) = \int S(I(t')) \cdot \kappa(A(t')) \, dt'.
+\]
+
+\subsection{Кореляція ($Z$)}
+\[
+Z = \sum_{i,j} \text{Corr}(d_i, d_j) \cdot K(d_i, d_j).
+\]
+
+\section{Приклад Застосування}
+\subsection{Реакція: $V_1 + V_2$}
+\subsection{Крок 1: Обчислення $A$}
+\[
+A = 0.1 \cdot 1^2 \cdot 0.8 \cdot 0.9 = 0.072.
+\]
+
+\subsection{Крок 2: Результат через $T$}
+\[
+T = \text{LSTM}(\text{BERT}(\text{дані}), \{ \text{параметр1, параметр2} \}) + 0.5 \cdot \text{k-means}(\text{мета-дані}).
+\]
+Результат: $ G = (0.4, 0.3, 0.05, \dots, 0.05) $.
+
+\subsection{Крок 3: Обмеження $Q$}
+\[
+H \approx 1.03, \quad Q = -1 \cdot 1.03 = -1.03.
+\]
+
+\end{document}

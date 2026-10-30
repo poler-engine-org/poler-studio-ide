@@ -1,0 +1,9 @@
+Программа ::= (Stmt)*
+Stmt ::= Assign | If | For | While | Def | Return | Expr
+Assign ::= Name '=' Expr
+If ::= 'if' Expr ':' Block ('elif' Expr ':' Block)* ('else' ':' Block)?
+For ::= 'for' Name 'in' Expr ':' Block
+
+Матрица переходов первых токенов строк:
+
+text

@@ -1,0 +1,19 @@
+│            │
+─────┼─────┼─────
+│           |
+─────┼─────┼─────
+│           │
+
+This looks like:
+Row 1: top border of the grid is missing the left segment, but has vertical lines for the middle and right columns.
+Wait. The user wants the left cell to be "incomplete" (no left border, no bottom border).
+The right bottom cell "incomplete" (no left border, no bottom border).
+
+Let's trace the user's example lines.
+Line 1: │ │ -> There is a space for the left column, │ for the middle column vertical line, spaces, │ for the right column vertical line. This acts as the top border of the grid? No, there are no ─, just vertical lines. That is weird. Usually, a grid top border has ─.
+Let's look at the user's previous prompt: "вот так" and they pasted that code block.
+Wait, if they want a grid with missing borders.
+Top border of the grid should be there, but maybe the leftmost part is missing?
+Let's reconsider the user's example:
+
+text

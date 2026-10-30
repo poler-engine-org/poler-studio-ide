@@ -1,0 +1,11 @@
+using LogicProgramming
+
+# Определение логических правил
+rules = """
+∀x. cat(x) → animal(x)
+∀x. animal(x) → mortal(x)
+cat(felix)
+"""
+
+# Логическая согласованность как ограничение
+logical_constraint = compile_logic_to_constraint(rules)

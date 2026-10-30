@@ -1,0 +1,17 @@
+[package]
+name = "poler-core"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+burn = { version = "0.14", features = ["ndarray"] }
+
+[lib]
+name = "poler_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "poler_demo"
+path = "src/main.rs"
+📄 src/lib.rs
+rust

@@ -1,0 +1,21 @@
+P3_Engine/
+├── src/
+│   ├── core/
+│   │   ├── p3_homogeneous.zig
+│   │   ├── p3_pgl4.zig
+│   │   ├── p3_fubini_study.zig
+│   │   ├── p3_resonance.zig
+│   │   └── p3_poler.zig
+│   ├── ecs/
+│   │   ├── p3_world.zig
+│   │   ├── p3_entity.zig
+│   │   ├── p3_component.zig
+│   │   └── p3_system.zig
+│   ├── scene/
+│   │   ├── p3_node.zig
+│   │   ├── p3_transform.zig
+│   │   └── p3_mesh.zig
+│   ├── physics/
+│   │   ├── p3_rigid_body.zig
+│   │   ├── p3_collision.zig
+│   │   └── p3_geodesic.zig

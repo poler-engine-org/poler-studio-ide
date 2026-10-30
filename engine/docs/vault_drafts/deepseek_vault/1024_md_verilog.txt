@@ -1,0 +1,178 @@
+// Полная синаптическая сеть с волновой передачей
+module WavePropagationNetwork (
+input wire clk,
+input wire reset,
+// Входные данные
+input wire [255:0] input_vector,
+// Конфигурация
+input wire [7:0] wave_speed,
+input wire [7:0] resonance_depth,
+// Выходы
+output wire [255:0] output_vector,
+output wire [7:0] system_entropy,
+output wire [15:0] total_energy
+);
+
+// Параметры сети
+parameter NUM_LAYERS = 8;
+parameter NEURONS_PER_LAYER = 256;
+parameter SYNAPSES_PER_NEURON = 128;
+
+// Волновые буферы
+wire [255:0] layer_outputs [0:NUM_LAYERS-1];
+wire [255:0] resonance_feedback [0:NUM_LAYERS-1];
+
+// Синаптические слои
+genvar layer_idx, neuron_idx, synapse_idx;
+
+generate
+for (layer_idx = 0; layer_idx < NUM_LAYERS; layer_idx = layer_idx + 1) begin : LAYERS
+// Нейроны в слое
+for (neuron_idx = 0; neuron_idx < NEURONS_PER_LAYER; neuron_idx = neuron_idx + 1) begin : NEURONS
+// Синапсы для каждого нейрона
+wire [SYNAPSES_PER_NEURON-1:0] synapse_outputs;
+
+for (synapse_idx = 0; synapse_idx < SYNAPSES_PER_NEURON; synapse_idx = synapse_idx + 1) begin : SYNAPSES
+// Выбор источника сигнала
+wire source_signal;
+if (layer_idx == 0) begin
+// Первый слой получает входные данные
+source_signal = input_vector[(neuron_idx + synapse_idx) % 256];
+end else begin
+// Последующие слои получают от предыдущего
+source_signal = layer_outputs[layer_idx-1][(neuron_idx + synapse_idx) % 256];
+end
+
+// Экземпляр синапса
+AsymmetricSynapsePrimitive synapse (
+.clk(clk),
+.reset(reset),
+.void_bit_in(1'b1),  // Вакуум всегда существует
+.presence_bit_in(source_signal),
+.weight_pattern(16'hAAAA + (layer_idx * 16'h1111)),
+.freq_pattern(16'hCCCC + (neuron_idx * 16'h0101)),
+.phase_pattern(16'hF0F0 + (synapse_idx * 16'h0011)),
+.synapse_out(synapse_outputs[synapse_idx]),
+.void_persists()  // Не используется
+);
+end
+
+// Нейрон, агрегирующий синапсы
+QuantumNeuronCore neuron (
+.clk(clk),
+.reset(reset),
+.synaptic_amplitudes_real({128{1'b0}}), // Упрощение
+.synaptic_amplitudes_imag({128{1'b0}}),
+.context_gate(8'hFF - layer_idx),
+.neuron_state_real(),  // Не используется в этом примере
+.neuron_state_imag(),
+.neuron_collapsed(layer_outputs[layer_idx][neuron_idx])
+);
+end
+
+// Резонансный наблюдатель для каждого слоя
+ResonanceObserver observer (
+.clk(clk),
+.reset(reset),
+.layer_states({layer_outputs[layer_idx]}),
+.resonance_depth(resonance_depth),
+.base_frequency(16'h1000 + (layer_idx * 16'h0400)),
+.resonance_output(resonance_feedback[layer_idx]),
+.entropy_level(),
+.energy_spectrum()
+);
+end
+endgenerate
+
+// Волновое распространение между слоями
+WavePropagator #(
+.NUM_LAYERS(NUM_LAYERS),
+.WAVE_SPEED(wave_speed)
+) propagator (
+.clk(clk),
+.reset(reset),
+.layer_inputs(layer_outputs),
+.resonance_inputs(resonance_feedback),
+.layer_outputs(output_vector)
+);
+
+// Расчет общей энтропии системы
+EntropyCalculator #(
+.NUM_LAYERS(NUM_LAYERS)
+) entropy_calc (
+.clk(clk),
+.reset(reset),
+.layer_states(layer_outputs),
+.total_entropy(system_entropy)
+);
+
+// Расчет общей энергии
+EnergyCalculator energy_calc (
+.clk(clk),
+.reset(reset),
+.layer_states(layer_outputs),
+.total_energy(total_energy)
+);
+
+endmodule
+
+// Модуль волнового распространения
+module WavePropagator #(
+parameter NUM_LAYERS = 8,
+parameter WAVE_SPEED = 4
+)(
+input wire clk,
+input wire reset,
+input wire [255:0] layer_inputs [0:NUM_LAYERS-1],
+input wire [255:0] resonance_inputs [0:NUM_LAYERS-1],
+output wire [255:0] layer_outputs
+);
+
+// Волновые буферы
+reg [255:0] wave_front [0:NUM_LAYERS-1];
+reg [255:0] wave_back [0:NUM_LAYERS-1];
+
+// Счетчик для волнового фронта
+reg [31:0] wave_counter;
+
+integer i, j;
+
+initial begin
+for (i = 0; i < NUM_LAYERS; i = i + 1) begin
+wave_front[i] = 256'b0;
+wave_back[i] = 256'b0;
+end
+wave_counter = 32'b0;
+end
+
+always @(posedge clk) begin
+if (reset) begin
+wave_counter <= 32'b0;
+end else begin
+wave_counter <= wave_counter + 1;
+
+// Распространение волны вперед
+for (i = 0; i < NUM_LAYERS-1; i = i + 1) begin
+if (wave_counter % WAVE_SPEED == 0) begin
+wave_front[i+1] <= wave_front[i] | layer_inputs[i];
+end
+end
+
+// Распространение волны назад (обратная связь)
+for (i = NUM_LAYERS-1; i > 0; i = i + 1) begin
+if (wave_counter % WAVE_SPEED == WAVE_SPEED/2) begin
+wave_back[i-1] <= wave_back[i] | resonance_inputs[i];
+end
+end
+
+// Интерференция прямых и обратных волн
+for (i = 0; i < NUM_LAYERS; i = i + 1) begin
+for (j = 0; j < 256; j = j + 1) begin
+// Конструктивная/деструктивная интерференция
+layer_outputs[j] <= wave_front[i][j] ^ wave_back[i][j];
+end
+end
+end
+end
+
+endmodule

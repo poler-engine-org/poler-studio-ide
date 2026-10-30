@@ -1,0 +1,5 @@
+# Иерархия ограничений по Монтегю
+constraints = [
+    PhoneticConstraint(),      # Фонетика (если работаем с речью)
+MorphologicalConstraint(), # Морфология
+SyntacticConstraint(),     # Синтаксис

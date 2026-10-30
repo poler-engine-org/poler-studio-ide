@@ -1,0 +1,5 @@
+echo "## Директорія: /home/vitalij/Документи/POLER-DYNAMIS-v5" >> all_files.md
+echo "" >> all_files.md
+find . -maxdepth 1 -type f ! -name "all_files.md" -exec echo "### Файл: {}" \; -exec echo '```' \; -exec cat {} \; -exec echo '```' \; -exec echo "" \; >> all_files.md
+4. Додайте вміст папки poler_rust_core
+fish

@@ -1,0 +1,13 @@
+name: Build QEMU
+
+on:
+push:
+  workflow_dispatch: # Позволяет запускать сборку вручную из интерфейса GitHub
+
+jobs:
+build:
+runs-on: ubuntu-latest
+steps:
+      - name: Checkout QEMU source code
+uses: actions/checkout@v4
+with:

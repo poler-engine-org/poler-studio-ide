@@ -1,0 +1,3 @@
+; Превращает русские слова в код
+:*:если::if{Space}
+:*:цикл::for{Space}i{Space}in{Space}range(::

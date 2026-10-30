@@ -1,0 +1,15 @@
+{
+"model_size": "medium",
+"cse_dimensions": 128,
+"cse_axes": 32,
+"ssn_layers": [512, 512, 256],
+"synapses_per_block": 256,
+"learning_rate": 0.001,
+"adaptation_rate": 0.01,
+"memory_size": 10000,
+"context_window": 10,
+"thinking_depth": 3,
+"creativity": 0.3,
+"coherence": 0.6,
+"target_entropy": 0.4
+}

@@ -1,0 +1,2 @@
+chmod +x /tmp/merge.sh
+bash /tmp/merge.sh

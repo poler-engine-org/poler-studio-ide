@@ -1,0 +1,172 @@
+Run
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КАССІОПЕЯ: Науковий симулятор | GTX 1060 Optimized</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+background: #010308;
+color: #e0e7ff;
+font-family: 'Segoe UI', system-ui, sans-serif;
+overflow: hidden;
+height: 100vh;
+}
+#canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+/* Статус-вікно ініціалізації */
+#status-overlay {
+position: fixed; inset: 0;
+background: rgba(7, 12, 28, 0.95);
+display: flex; flex-direction: column;
+justify-content: center; align-items: center;
+z-index: 10000; padding: 2rem;
+}
+.status-title {
+font-size: 2.2rem; margin-bottom: 1.5rem;
+color: #6366f1; text-align: center;
+text-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+}
+.status-subtitle {
+font-size: 1.1rem; color: #94a3b8;
+margin-bottom: 2.5rem; max-width: 600px;
+line-height: 1.6; text-align: center;
+}
+.progress-container {
+width: 500px; background: rgba(30, 41, 59, 0.7);
+border-radius: 12px; overflow: hidden;
+box-shadow: 0 0 25px rgba(74, 144, 226, 0.4);
+margin-bottom: 1.5rem;
+}
+.progress-bar {
+height: 24px; width: 0%;
+background: linear-gradient(90deg, #4ade80, #38bdf8, #8b5cf6);
+transition: width 0.3s ease;
+border-radius: 12px;
+}
+.status-text {
+font-size: 1.3rem; color: #cbd5e1;
+margin-top: 1rem; min-height: 28px;
+font-weight: 500;
+}
+.optimization-note {
+position: absolute; bottom: 30px;
+color: #64748b; font-size: 0.95rem;
+max-width: 600px; text-align: center;
+line-height: 1.5;
+}
+.optimization-note strong { color: #4ade80; }
+
+/* HUD після завантаження */
+.hud {
+position: absolute; top: 20px; right: 20px;
+width: 380px; z-index: 100;
+background: rgba(15, 23, 42, 0.85);
+border: 1px solid rgba(74, 144, 226, 0.3);
+border-radius: 16px; padding: 18px;
+backdrop-filter: blur(10px);
+font-size: 0.93rem; line-height: 1.55;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.hud h1 {
+font-size: 1.35rem; margin-bottom: 14px;
+color: #6366f1; display: flex; align-items: center; gap: 10px;
+}
+.stats-grid {
+display: grid; grid-template-columns: repeat(2, 1fr);
+gap: 9px; margin: 12px 0;
+}
+.stat-item {
+background: rgba(30, 41, 59, 0.6);
+padding: 8px 12px; border-radius: 10px;
+border-left: 3px solid #4ade80;
+}
+.stat-label { font-size: 0.82rem; color: #94a3b8; }
+.stat-value { font-weight: 600; color: #fbbf24; font-size: 1.05rem; }
+.controls {
+display: grid; grid-template-columns: repeat(3, 1fr);
+gap: 8px; margin-top: 16px;
+}
+.btn {
+background: rgba(56, 189, 248, 0.12);
+border: 1px solid rgba(56, 189, 248, 0.35);
+color: #38bdf8; padding: 9px 4px; border-radius: 8px;
+cursor: pointer; font-size: 0.86rem; transition: all 0.2s;
+display: flex; align-items: center; justify-content: center;
+gap: 5px;
+}
+.btn:hover { background: rgba(56, 189, 248, 0.22); transform: translateY(-1px); }
+.btn.active {
+background: rgba(168, 85, 247, 0.25);
+border-color: #a855f7; color: #c084fc;
+box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+}
+
+/* Інформаційна панель */
+#info {
+position: absolute; bottom: 20px; left: 20px;
+width: 400px; max-height: 260px;
+background: rgba(23, 29, 47, 0.92);
+border: 1px solid rgba(168, 85, 247, 0.45);
+border-radius: 16px; padding: 18px;
+backdrop-filter: blur(12px);
+overflow-y: auto; font-size: 0.91rem; line-height: 1.62;
+transform: translateY(40px); opacity: 0;
+transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+#info.visible { transform: translateY(0); opacity: 1; }
+#info h2 {
+color: #818cf8; margin-bottom: 10px;
+display: flex; align-items: center; gap: 8px;
+font-size: 1.25rem;
+}
+#info p { color: #cbd5e1; margin: 7px 0; }
+.params-grid {
+display: grid; grid-template-columns: repeat(2, 1fr);
+gap: 7px; margin-top: 12px;
+}
+.param-item {
+background: rgba(30, 41, 59, 0.5);
+padding: 6px 10px; border-radius: 8px;
+}
+.param-label { color: #94a3b8; font-size: 0.83rem; }
+.param-value { color: #fbbf24; font-weight: 500; }
+
+/* Концентричні кола резонансів */
+.resonance-ring {
+position: absolute; top: 50%; left: 50%;
+border: 2px dashed rgba(255, 255, 255, 0.12);
+border-radius: 50%; pointer-events: none;
+transform: translate(-50%, -50%);
+opacity: 0.15; transition: opacity 0.4s;
+}
+.resonance-ring.active { opacity: 0.38; }
+.resonance-label {
+position: absolute; color: rgba(255, 255, 255, 0.75);
+font-size: 0.88rem; pointer-events: none;
+background: rgba(0, 0, 0, 0.6); padding: 2px 10px;
+border-radius: 12px; white-space: nowrap;
+font-weight: 500; transform: translateX(-50%);
+}
+
+/* FPS та статус симуляції */
+#performance {
+position: absolute; bottom: 20px; right: 20px;
+background: rgba(15, 23, 42, 0.8);
+border: 1px solid rgba(56, 189, 248, 0.3);
+border-radius: 10px; padding: 8px 14px;
+font-size: 0.85rem; z-index: 100;
+display: flex; flex-direction: column; gap: 2px;
+}
+#fps-counter { color: #38bdf8; font-weight: 500; }
+#sim-status { color: #10b981; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+<!-- Статус-вікно ініціалізації -->
+<div id="status-overlay">
+        <div class="status-title">🌌 СИСТЕМА КАССІОПЕЇ: ІНІЦІАЛІЗАЦІЯ</div>
+<div class="status-subtitle">

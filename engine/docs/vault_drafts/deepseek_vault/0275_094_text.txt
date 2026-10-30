@@ -1,0 +1,11 @@
+│            │
+─────┼─────┼─────
+│           |
+─────┼─────┼─────
+│           │
+
+Let's interpret this as a 3x3 grid.
+Top row: │ │ -> This is the top border? No, there is no top horizontal ─. Wait.
+Let's look at the example closely.
+
+text

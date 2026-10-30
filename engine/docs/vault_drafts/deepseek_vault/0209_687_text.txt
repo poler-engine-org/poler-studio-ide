@@ -1,0 +1,4 @@
+cassiopeia_simulator/
+├── main.py                 # Головний файл для запуску
+├── core/
+│   ├── planetary_system.py # Класи CelestialBody, PlanetarySystem

@@ -1,0 +1,9 @@
+// Нейрон может быть в суперпозиции состояний
+if (!neuron_collapsed) begin
+// Суперпозиция
+neuron_state_real <= sum_real;
+neuron_state_imag <= sum_imag;
+end else begin
+// Коллапс в конкретное состояние
+neuron_state_real <= superposition_real[max_index];
+end

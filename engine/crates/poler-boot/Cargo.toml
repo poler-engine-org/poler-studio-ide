@@ -1,0 +1,10 @@
+[package]
+name = "poler-boot"
+version = "0.92.0"
+edition = "2021"
+description = "POLER Pre-Boot OS-Translator (UEFI POST Ring -1 initializer, Shared RAM Ring & Standalone POST Debugger)"
+license-file = "../../LICENSE.md"
+
+[[bin]]
+name = "poler-boot"
+path = "src/main.rs"

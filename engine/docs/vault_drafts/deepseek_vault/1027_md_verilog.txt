@@ -1,0 +1,3 @@
+// Информация распространяется как волна
+wave_front[i+1] <= wave_front[i] | layer_inputs[i];
+wave_back[i-1]  <= wave_back[i]  | resonance_inputs[i];

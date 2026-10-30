@@ -10,6 +10,10 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "poler:engine": "resources/bin/poler-engine.exe",
+    "poler:search": "resources/bin/poler-engine.exe --format ai-json",
+    "poler:resonance": "resources/bin/poler-engine.exe --resonance-mode psi",
+    "poler:edit-core": "resources/bin/poler-edit-core.exe",
     "test": "node -e \"console.error('Run a test script from the scripts folder, for example: ./scripts/test.sh --run <file>.'); process.exit(1)\"",
     "test-browser": "npx playwright install && node test/unit/browser/index.js",
     "test-browser-no-install": "node test/unit/browser/index.js",
@@ -101,6 +105,7 @@
     "reauth-feed": "artifacts-npm-credprovider --force"
   },
   "dependencies": {
+    "@poler/engine": "file:./engine",
     "@anthropic-ai/sdk": "^0.82.0",
     "@devcontainers/cli": "0.88.0",
     "@github/copilot-sdk": "1.0.27-unstable.40031404408.gba6c003",

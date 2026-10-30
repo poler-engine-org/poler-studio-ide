@@ -1,0 +1,2 @@
+До: Output zone max state = 0.0000
+После: Output zone max state = 25.85

@@ -1,0 +1,7 @@
+120
+NAME       TYPE             SIZE USED PRIO
+/swapfile  file      25769799680    0   10
+/dev/zram0 partition 16722685952    0  100
+active
+/etc/udev/rules.d/99-zram-swappiness-fix.rules:1:ACTION=="change", KERNEL=="zram0", SYSCTL{vm.swappiness}="120"
+/usr/lib/udev/rules.d/30-zram.rules:13:ACTION=="change", KERNEL=="zram0", ATTR{initstate}=="1", SYSCTL{vm.swappiness}="150", \

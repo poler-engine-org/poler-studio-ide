@@ -1,0 +1,32 @@
+# ingest.py - фрагмент для добавления в конец main
+
+def calculate_confidence(theme, keywords, clusters):
+# Пример: если есть семантическая тема от LLM -> confidence выше
+if theme.get("semantic"):
+base = 0.85
+else:
+base = 0.6
+# можно добавить другие факторы, например количество ключевых слов
+if keywords and len(keywords) > 5:
+base += 0.05
+if clusters and len(clusters) > 2:
+base += 0.05
+return min(base, 1.0)
+
+# ... после получения результатов
+output = {
+"status": "success",
+"confidence": calculate_confidence(theme, keywords, clusters),
+"data": {
+"text": text,
+"meta": meta,
+"theme": theme,
+"keywords": keywords,
+"clusters": clusters
+}
+}
+print(json.dumps(output, ensure_ascii=False))
+
+Валидатор на основе JSON Schema:
+
+python

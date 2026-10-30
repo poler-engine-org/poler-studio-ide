@@ -1,0 +1,87 @@
+\frac{d\mathbf{DM}}{dt} = -\eta\;\Pi_\Lambda\Big[\Delta_{\text{idem}} + \gamma\,\mathbf{J}\,\mathbf{DM} + \mathbf{K}\Big]
+
+where
+
+𝐾
+=
+𝐹
+𝐷
+𝑀
+𝑆
+−
+𝑆
+𝐷
+𝑀
+𝐹
+K=FDMS−SDMF (orbital gradient),
+
+Π
+Λ
+Π
+Λ
+​
+
+is McWeeny purification (idempotency projector),
+
+Δ
+idem
+Δ
+idem
+​
+
+drives the DM toward idempotency,
+
+𝐽
+J is a skew‑symmetric “resonance” matrix that injects memory‑like oscillations,
+
+𝜂
+η adapts to the “surprise”
+∥
+[
+𝐹
+,
+𝐷
+𝑀
+]
+∥
+∥[F,DM]∥.
+
+What works / is implemented
+
+Python integration with PySCF (hf_poler_dynamis.py, poler_chem.py, pyscf_poler/).
+The SCF kernel can be hijacked: after a standard Fock diagonalisation a POLER “kick” is added, McWeeny purification is applied, and an observer‑kill backtracking prevents energy increases.
+
+Three operational modes – A (dissipative only), B (resonant), C (adaptive annealing).
+
+Rust core (poler_rust_core/) using faer for linear algebra and diffsol for ODE integration.
+The energy_engine.rs implements all 14 mechanisms summarised in POLER_UNIFIED_ALGORITHM.md.
+
+Basis set parsing (basis_parser.rs) – reads NWChem/Gaussian .dat files (6‑31G, cc‑pVDZ) and splits SP shells.
+
+FFI to libcint – skeletal wrappers for 1e/2e integrals; the actual libcint.so is not included (only placeholders).
+
+Qiskit experiments – toy 2‑qubit circuits that illustrate the resonance mechanism (POLER_sim.py, POLER_modeB.py, …).
+
+Symbolic proof (poler_proof.py) – shows that Kepler’s third law emerges if “logic mass” replaces gravitational mass.
+
+Cosmological metaphor (poler_gravity.py, run_evolution.py) – particles moving under “information resonance” instead of Newtonian gravity.
+
+What is missing / notes for NotebookLM
+
+Binary libraries – libcint.so is mentioned but not provided (the file includes only a text stub). Real integral evaluation will not work without linking the actual C library.
+
+PySCF is still required – the Rust core does not yet replace the integral engine; it currently relies on PySCF’s get_jk etc. The libcint_ffi.rs functions are safe wrappers, but the unsafe calls are commented out.
+
+Testing – test_poler_chem.py and test_poler_dynamis.py run simple molecules (H₂, H₂O, stretched H₂) and report energy differences between standard SCF and POLER. The results show deviations up to ~1 mHa, which the authors consider acceptable at this stage.
+
+Documentation – The code is extensively commented in a mixture of English and Ukrainian/Russian.
+
+Summary
+
+POLER‑DYNAMIS v5 is a research prototype that re‑thinks SCF convergence as a controlled dynamical system. It is not yet a drop‑in replacement for production quantum chemistry (the Rust core is not fully wired to libcint, and many features are stubs). However, the architecture is clearly laid out, and the combination of Python high‑level control with a Rust numerical core is a solid foundation for further development.
+
+If you have a specific question about any component (e.g., how the resonance matrix is built, the adaptive η schedule, or the McWeeny purification), feel free to ask.
+
+DeepThink
+Search
+AI-generated, for reference only

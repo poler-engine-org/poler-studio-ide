@@ -1,0 +1,6 @@
+echo "# Зведений документ усіх файлів проекту POLER-DYNAMIS-v5" > all_files.md
+echo "" >> all_files.md
+echo "Створено: "(date) >> all_files.md
+echo "" >> all_files.md
+3. Додайте вміст першої папки (POLER-DYNAMIS-v5)
+fish

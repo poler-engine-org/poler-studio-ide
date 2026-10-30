@@ -1,0 +1,9 @@
+# Пример: конструирование юридического документа
+legal_ops = load_operators("legal_constraints.jl")
+contract_state = encode_intention("аренда квартиры на 1 год")
+contract_text = construct_document(contract_state, legal_ops)
+
+# Пример: медицинское заключение
+medical_ops = load_operators("medical_constraints.jl")
+diagnosis_state = encode_intention("диагноз: гипертония 2 степени")
+medical_text = construct_report(diagnosis_state, medical_ops)

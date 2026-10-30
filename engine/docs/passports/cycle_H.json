@@ -1,0 +1,298 @@
+{
+  "cycle": "H",
+  "theorem": "VII §2.3 (5,6) + VIII §6.5 — SMT для теоретико-числового и крипто-субстратов УДЕ",
+  "subject": "числа: биективность gcd, периоды-подгруппа, автокорреляция Q_Λ, ord_N(a); квант: поиск периода движком; эхо: IIR-орбита; PND: Φ/S-box/MDS/равномерность",
+  "environment": {
+    "z3": "5.1.0",
+    "sympy": "1.14.0",
+    "numpy": "2.5.3",
+    "pqc_bin": "/home/vitalij/Стільниця/poler-engine/target/release/pqc"
+  },
+  "results": [
+    {
+      "check": "H.1-multiplication-bijection-gcd",
+      "ok": true,
+      "detail": "∀a∈[1,15): инъективность x↦ax proved ⟺ gcd(a,15)=1 (units 8/8 proved, non-units 6/6 refuted), 0.1s",
+      "numbers": {
+        "units_proved": 8.0,
+        "nonunits_refuted": 6.0,
+        "seconds": 0.1015167236328125
+      }
+    },
+    {
+      "check": "H.2-period-set-subgroup",
+      "ok": true,
+      "detail": "Z3: unsat (отрицание не имеет модели)",
+      "numbers": {
+        "N": 16.0,
+        "p": 6.0,
+        "q": 10.0,
+        "p_minus_q": 12.0
+      }
+    },
+    {
+      "check": "H.3-autocorrelation-criterion",
+      "ok": true,
+      "detail": "Z3: нет разногласий пар ⟹ d — период — unsat (отрицание не имеет модели)",
+      "numbers": {
+        "N": 16.0,
+        "d": 6.0
+      }
+    },
+    {
+      "check": "H.3-autocorrelation-criterion-converse",
+      "ok": true,
+      "detail": "Z3: d — период ⟹ все пары согласны — unsat (отрицание не имеет модели)",
+      "numbers": {
+        "N": 16.0,
+        "d": 6.0
+      }
+    },
+    {
+      "check": "H.4-order-minimality",
+      "ok": true,
+      "detail": "∀(N,a) ∈ [(15, 2), (15, 7), (21, 2), (21, 8), (35, 2), (35, 6)]: a^ord ≡ 1 proved, ∀k<ord: a^k ≢ 1 (Z3 unsat), 6/6",
+      "numbers": {
+        "cases": 6.0,
+        "proved": 6.0
+      }
+    },
+    {
+      "check": "H.5-power-closure-rotations",
+      "ok": true,
+      "detail": "a^i·a^j ≡ a^{(i+j) mod r} — «фазовые вращения a^x» замкнуты (J-оператор субстрата), 6/6 пар (N,a)",
+      "numbers": {
+        "cases": 6.0,
+        "closed": 6.0
+      }
+    },
+    {
+      "check": "QPCC-N15-a2",
+      "ok": true,
+      "detail": "ord_15(2) = 4: движок восстановил 4, Дирихле max|Δp| = 1.11e-16, SMT-сертификат proved",
+      "numbers": {
+        "order": 4.0,
+        "recovered": 4.0,
+        "max_dp": 1.1102230246251565e-16,
+        "n_qubits": 6.0,
+        "smt": "proved"
+      }
+    },
+    {
+      "check": "QPCC-N15-a7",
+      "ok": true,
+      "detail": "ord_15(7) = 4: движок восстановил 4, Дирихле max|Δp| = 1.11e-16, SMT-сертификат proved",
+      "numbers": {
+        "order": 4.0,
+        "recovered": 4.0,
+        "max_dp": 1.1102230246251565e-16,
+        "n_qubits": 6.0,
+        "smt": "proved"
+      }
+    },
+    {
+      "check": "QPCC-N21-a2",
+      "ok": true,
+      "detail": "ord_21(2) = 6: движок восстановил 6, Дирихле max|Δp| = 2.60e-16, SMT-сертификат proved",
+      "numbers": {
+        "order": 6.0,
+        "recovered": 6.0,
+        "max_dp": 2.6020852139652106e-16,
+        "n_qubits": 6.0,
+        "smt": "proved"
+      }
+    },
+    {
+      "check": "QPCC-N35-a2",
+      "ok": true,
+      "detail": "ord_35(2) = 12: движок восстановил 12, Дирихле max|Δp| = 1.34e-16, SMT-сертификат proved",
+      "numbers": {
+        "order": 12.0,
+        "recovered": 12.0,
+        "max_dp": 1.3357370765021415e-16,
+        "n_qubits": 7.0,
+        "smt": "proved"
+      }
+    },
+    {
+      "check": "QPCC-N35-a6",
+      "ok": true,
+      "detail": "ord_35(6) = 2: движок восстановил 2, Дирихле max|Δp| = 2.22e-16, SMT-сертификат proved",
+      "numbers": {
+        "order": 2.0,
+        "recovered": 2.0,
+        "max_dp": 2.220446049250313e-16,
+        "n_qubits": 6.0,
+        "smt": "proved"
+      }
+    },
+    {
+      "check": "H.6-iir-echo-closed-form",
+      "ok": true,
+      "detail": "SymPy: M*_j = Σ ρ^i s_(j−i)/(1−ρ^r) стационарна относительно M_t = ρ(M_(t−1)+s_(t−1)) для всех j (r = 6), упрощение разности = 0",
+      "numbers": {
+        "r": 6.0,
+        "symbolic": "simplify(Δ) = 0 ∀j"
+      }
+    },
+    {
+      "check": "H.6-iir-echo-orbit",
+      "ok": true,
+      "detail": "орбита: симуляция vs замкнутая форма max|Δ| = 1.18e-27; Z3-стационарность proved; автокорреляционный пик Q_Λ: lag 0 (54.3109) > лучший чужой лаг (54.1412)",
+      "numbers": {
+        "max_phase_err": 1.1787322231678e-27,
+        "z3_stationarity": "proved",
+        "peak_lag0": 54.310936296176145,
+        "best_foreign": 54.14123514861522,
+        "r": 6.0
+      }
+    },
+    {
+      "check": "H.7-bezout-certificate",
+      "ok": true,
+      "detail": "Z3: C2·D = 1 + m·2^32, m = 240627201 (ground-равенство) — unsat (отрицание не имеет модели)",
+      "numbers": {
+        "m": 240627201.0
+      }
+    },
+    {
+      "check": "H.7-mul-inverse-int-core",
+      "ok": true,
+      "detail": "Z3: умножение на константу линейно в Int — ядро доказано напрямую — unsat (отрицание не имеет модели)",
+      "numbers": {
+        "theory": "LIA + mod",
+        "claim": "((x·C2 mod 2^32)·D) mod 2^32 = x"
+      }
+    },
+    {
+      "check": "H.7-phi-shell-s1",
+      "ok": true,
+      "detail": "Z3: add C1/rotl13/xorshift16 — линейная оболочка — unsat (отрицание не имеет модели)",
+      "numbers": {
+        "claim": "S1⁻¹(S1(x)) = x"
+      }
+    },
+    {
+      "check": "H.7-phi-shell-s2",
+      "ok": true,
+      "detail": "Z3: rotl7/add 1 — линейная оболочка — unsat (отрицание не имеет модели)",
+      "numbers": {
+        "claim": "S2⁻¹(S2(x)) = x"
+      }
+    },
+    {
+      "check": "H.7-mul-decomposition-parity",
+      "ok": true,
+      "detail": "разложение x·C суммой сдвигов ≡ нативному BV-умножению: 64/64 значения (z3.simplify равенств — все true; тождество — дистрибутивность mod 2^32)",
+      "numbers": {
+        "checked": 64.0
+      }
+    },
+    {
+      "check": "H.7-phi-bijection-layered",
+      "ok": true,
+      "detail": "φ⁻¹(φ(x)) = x по композиции: S2⁻¹∘S2 = id (proved) · MUL_D∘MUL_C2 = id (Int-core proved + мост) · S1⁻¹∘S1 = id (proved); прямой миттер — timeout (multiplier-equivalence, Bryant 1991)",
+      "numbers": {
+        "components": 3.0,
+        "direct_mitter": "timeout 240s (жёсткость задокументирована)"
+      }
+    },
+    {
+      "check": "H.8-sbox-gf-inverse",
+      "ok": true,
+      "detail": "Z3: unsat (отрицание не имеет модели)",
+      "numbers": {
+        "field": "GF(2^8)/0x11B",
+        "chain": "x^254 = 7 squarings + 6 muls",
+        "claim": "∀x≠0: x·x^254 = 1 (миттер QF_BV)"
+      }
+    },
+    {
+      "check": "H.8-sbox-zero-fixed",
+      "ok": true,
+      "detail": "Z3: unsat (отрицание не имеет модели)",
+      "numbers": {}
+    },
+    {
+      "check": "H.8-sbox-affine-injective",
+      "ok": true,
+      "detail": "Z3: unsat (отрицание не имеет модели)",
+      "numbers": {}
+    },
+    {
+      "check": "H.8-sbox-bijective-exhaustive-z3",
+      "ok": true,
+      "detail": "Z3-схема вычислила все 256 значений: |{s(x)}| = 256, s(0) = 0x63",
+      "numbers": {
+        "distinct": 256.0,
+        "s0": "0x63"
+      }
+    },
+    {
+      "check": "H.9-gf-const-decomposition-parity",
+      "ok": true,
+      "detail": "gf_mul_const(2/3, ·) ≡ нативной gf_mul-схеме: 512/512 значений",
+      "numbers": {
+        "checked": 512.0
+      }
+    },
+    {
+      "check": "H.9-mds-single-byte-diffusion",
+      "ok": true,
+      "detail": "∀pos ∈ [0,4): активный байт v≠0 → все 4 выхода ≠ 0 (wt_in + wt_out ≥ 5, колоночная часть B = 5): 4/4 позиций proved",
+      "numbers": {
+        "positions_proved": 4.0
+      }
+    },
+    {
+      "check": "H.10-round-bijection",
+      "ok": true,
+      "detail": "Z3: unsat (отрицание не имеет модели)",
+      "numbers": {
+        "round": "rotl4(x ^ 0b0110, 1) + 0b0101"
+      }
+    },
+    {
+      "check": "H.10-uniform-stationary-point",
+      "ok": true,
+      "detail": "раунд — перестановка (True); равномерное распределение — неподвижная точка (макс. |Δp| = 0.0e+00); инстанциация Thm F.7(a) для крипто-субстрата",
+      "numbers": {
+        "is_permutation": 1.0,
+        "max_dp": 0.0
+      }
+    }
+  ],
+  "verdicts": [
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS",
+    "PASS"
+  ],
+  "n_pass": 27,
+  "n_total": 27,
+  "verdict": "AXIOM CONFIRMED",
+  "elapsed_s": 18.804202795028687
+}

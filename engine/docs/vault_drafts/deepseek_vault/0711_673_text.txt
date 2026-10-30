@@ -1,0 +1,14 @@
+if:         18.7%
+for:        12.3%
+def:         9.8%
+assign:     24.1%
+call:       15.2%
+import:      4.7%
+class:       3.1%
+try:         2.5%
+while:       1.8%
+return:      5.2%
+
+Цепь Маркова для блоков:
+
+text
