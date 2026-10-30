@@ -1,0 +1,131 @@
+name: Build POLER Studio. IDE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'extensions/**'
+      - 'product.json'
+      - 'build/**'
+      - '.github/workflows/build-poler-studio.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build-win32-x64:
+    name: Build Windows x64 (POLER Studio.exe)
+    runs-on: windows-2022
+    timeout-minutes: 90
+
+    env:
+      NPM_ARCH: x64
+      VSCODE_ARCH: x64
+      VSCODE_SKIP_PRELAUNCH: '1'
+      VSCODE_SKIP_NODE_VERSION_CHECK: '1'
+      NODE_OPTIONS: '--max-old-space-size=8192'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '0'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Preinstall & Install NPM Dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host "Running preinstall..."
+          node build/npm/preinstall.ts
+          
+          Write-Host "Running npm ci..."
+          for ($i = 1; $i -le 3; $i++) {
+            try {
+              npm ci --prefer-offline --no-audit
+              break
+            } catch {
+              if ($i -eq 3) { throw "npm ci failed after 3 attempts" }
+              Write-Host "Retry $i in 5 seconds..."
+              Start-Sleep -Seconds 5
+            }
+          }
+
+      - name: Download Built-in Extensions
+        shell: pwsh
+        run: |
+          npm run download-builtin-extensions
+
+      - name: Compile Client & Extensions
+        shell: pwsh
+        run: |
+          npm run compile-client
+          npm run compile-extensions-build
+
+      - name: Package VSCode Win32 x64
+        shell: pwsh
+        run: |
+          npm run gulp vscode-win32-x64
+
+      - name: Embed POLER Native Engines
+        shell: pwsh
+        run: |
+          $destBin = "../VSCode-win32-x64/resources/bin"
+          New-Item -ItemType Directory -Path $destBin -Force | Out-Null
+          if (Test-Path "resources/bin") {
+            Copy-Item "resources/bin/*" -Destination $destBin -Recurse -Force
+          }
+          Write-Host "Listing output executable files in ../VSCode-win32-x64:"
+          Get-ChildItem -Path "../VSCode-win32-x64" -Filter "*.exe" | Select-Object Name, Length
+
+      - name: Create Archive
+        shell: pwsh
+        run: |
+          $buildDir = Resolve-Path "../VSCode-win32-x64"
+          $zipPath = Join-Path (Resolve-Path "..") "POLER-Studio-win32-x64.zip"
+          Write-Host "Compressing $buildDir into $zipPath ..."
+          Compress-Archive -Path "$buildDir\*" -DestinationPath $zipPath -CompressionLevel Optimal
+          Get-Item $zipPath | Select-Object Name, Length
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: POLER-Studio-win32-x64
+          path: ../POLER-Studio-win32-x64.zip
+          retention-days: 30
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-resonance
+          name: POLER Studio. IDE v1.0.0 (Resonance Edition)
+          body: |
+            ## ⚡ POLER Studio. IDE — Sovereign AI-Native Engineering Environment
+            - **Engine:** `poler-engine` v0.93.0 & `poler-edit-core` v0.4.1 (Zero-Copy Piece-Table O(1) <= 48MB)
+            - **Features:**
+              - Causal Nexus & AIDDE Impact (`Alt+F12`)
+              - Квантово-резонансный топографический поиск Ψ (`Alt+S`)
+              - AI Context Generator (Feed Understand / Edit)
+              - Научная Студия SciLang + 3D Canvas (`Ctrl+Alt+C`)
+              - Темы оформления: Breeze Dark (POLER) & Neon Resonance (Ψ)
+              - Полное отключение телеметрии
+            - **Binary:** Portable standalone дистрибутив `POLER Studio.exe` для Windows x64.
+          files: ../POLER-Studio-win32-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
