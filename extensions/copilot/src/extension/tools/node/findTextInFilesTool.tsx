@@ -59,6 +59,8 @@ interface MatchResult {
 	files: FileMatch[];
 }
 
+const MAX_SEARCH_TIMEOUT_MS = 185_000;
+
 export class FindTextInFilesTool implements ICopilotTool<IFindTextInFilesToolParams> {
 	public static readonly toolName = ToolName.FindTextInFiles;
 	public static readonly nonDeferred = true;
@@ -109,32 +111,32 @@ export class FindTextInFilesTool implements ICopilotTool<IFindTextInFilesToolPar
 		const queryIsValidRegex = this.isValidRegex(options.input.query);
 		const includeIgnoredFiles = options.input.includeIgnoredFiles ?? false;
 
-		// try find text with a timeout of 20s
-		const timeoutInMs = 20_000;
-
 		// For the grp output we don't limit the number of matches by cutting files. We instead
 		// keep files and cut matches for each file. Therefore we need to ask for more results upfront
 		// to account for the fact that some files will be cut off. For the tag output we cut off files
 		// instead of matches, so we can just ask for the maxResults number of results.
 		const searchMaxResults = useGrepStyle ? maxResults * 5 : maxResults;
 
-		let results = await raceTimeoutAndCancellationError(
-			(searchToken) => this.searchAndCollectResults(options.input.query, isRegExp, patterns, searchMaxResults, includeIgnoredFiles, searchToken),
-			token,
-			timeoutInMs,
-			// embed message to give LLM hint about what to do next
-			`Timeout in searching text in files with ${isRegExp ? 'regex' : 'literal'} search, try a more specific search pattern or change regex/literal mode`
-		);
+		const searchDeadline = Date.now() + MAX_SEARCH_TIMEOUT_MS;
+		const timeoutMessage = `Timeout in searching text in files with ${isRegExp ? 'regex' : 'literal'} search, try a more specific search pattern or change regex/literal mode`;
+		const search = (searchIsRegExp: boolean) => {
+			const timeoutInMs = searchDeadline - Date.now();
+			if (timeoutInMs <= 0) {
+				throw new Error(timeoutMessage);
+			}
+			return raceTimeoutAndCancellationError(
+				searchToken => this.searchAndCollectResults(options.input.query, searchIsRegExp, patterns, searchMaxResults, includeIgnoredFiles, searchToken),
+				token,
+				timeoutInMs,
+				timeoutMessage
+			);
+		};
+
+		let results = await search(isRegExp);
 
 		// If we still have no results, we need to try the opposite regex mode
 		if (!results.length && queryIsValidRegex) {
-			results = await raceTimeoutAndCancellationError(
-				(searchToken) => this.searchAndCollectResults(options.input.query, !isRegExp, patterns, searchMaxResults, includeIgnoredFiles, searchToken),
-				token,
-				timeoutInMs,
-				// embed message to give LLM hint about what to do next
-				`Find ${results.length} results in searching text in files with ${isRegExp ? 'regex' : 'literal'} search, and then another searching hits timeout in with ${!isRegExp ? 'regex' : 'literal'} search, try a more specific search pattern`
-			);
+			results = await search(!isRegExp);
 		}
 
 		let noMatchInstructions: string | undefined = undefined;

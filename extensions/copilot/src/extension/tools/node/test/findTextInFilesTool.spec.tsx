@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { afterEach, beforeEach, expect, suite, test } from 'vitest';
+import { afterEach, beforeEach, expect, suite, test, vi } from 'vitest';
 import type * as vscode from 'vscode';
 import { IEndpointProvider } from '../../../../platform/endpoint/common/endpointProvider';
 import { RelativePattern } from '../../../../platform/filesystem/common/fileTypes';
@@ -118,6 +118,25 @@ suite('FindTextInFiles', () => {
 		await tool.invoke({ input: { query: '[', includePattern: '*.ts', isRegexp: false }, toolInvocationToken: null!, }, CancellationToken.None);
 
 		expect(searchService.calls.map(call => call.isRegExp)).toEqual([false]);
+	});
+
+	test('allows the POLER search governor to finish before timing out', async () => {
+		collection.define(ISearchService, new NeverCompletingSearchService());
+		accessor = collection.createTestingAccessor();
+		vi.useFakeTimers();
+		try {
+			const tool = accessor.get(IInstantiationService).createInstance(FindTextInFilesTool);
+			const invocation = tool.invoke({ input: { query: 'hello', includePattern: '*.ts' }, toolInvocationToken: null! }, CancellationToken.None);
+			let isSettled = false;
+			void invocation.then(() => { isSettled = true; }, () => { isSettled = true; });
+
+			await vi.advanceTimersByTimeAsync(180_001);
+			expect(isSettled).toBe(false);
+			await vi.advanceTimersByTimeAsync(4_999);
+			await expect(invocation).rejects.toThrow('Timeout in searching text in files');
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	suite('gpt-4.1 model glob pattern', () => {
@@ -281,6 +300,25 @@ class TestSearchService extends AbstractSearchService {
 		return {
 			complete: Promise.resolve({}),
 			results: (async function* () { })()
+		};
+	}
+
+	override async findFiles(filePattern: vscode.GlobPattern, options?: vscode.FindFiles2Options | undefined, token?: vscode.CancellationToken | undefined): Promise<vscode.Uri[]> {
+		throw new Error('Method not implemented.');
+	}
+}
+
+class NeverCompletingSearchService extends AbstractSearchService {
+	override async findTextInFiles(query: vscode.TextSearchQuery, options: vscode.FindTextInFilesOptions, progress: vscode.Progress<vscode.TextSearchResult>, token: vscode.CancellationToken): Promise<vscode.TextSearchComplete> {
+		throw new Error('Method not implemented.');
+	}
+
+	override findTextInFiles2(query: vscode.TextSearchQuery2, options?: vscode.FindTextInFilesOptions2, token?: vscode.CancellationToken): vscode.FindTextInFilesResponse {
+		return {
+			complete: new Promise<vscode.TextSearchComplete>(() => { }),
+			results: (async function* () {
+				await new Promise<void>(() => { });
+			})(),
 		};
 	}
 

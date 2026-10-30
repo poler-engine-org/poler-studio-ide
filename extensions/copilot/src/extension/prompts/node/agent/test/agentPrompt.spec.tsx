@@ -502,6 +502,12 @@ suite('AgentPrompt - Gemini Flash prompt additions experiment', () => {
 		}).toEqual(expected);
 	}
 
+	test.each(['gpt-5.6', 'claude-sonnet-4.6', 'gemini-2.0-flash'])('routes exact workspace search directly for %s', async family => {
+		const rendered = await renderForFamily(family);
+		expect(rendered).toContain(`For exact text or regex searches, call ${ToolName.FindTextInFiles} directly.`);
+		expect(rendered).not.toContain(`instead of directly calling ${ToolName.FindTextInFiles}`);
+	});
+
 	test('additions appear for Gemini Flash 3.6 when experiment is enabled', async () => {
 		accessor.get(IConfigurationService).setConfig(ConfigKey.EnableGeminiFlashPromptAdditions, true);
 		assertAdditions(await renderForFamily('gemini-3.6-flash'), { readAst: true, toolBatching: true, searchPrecision: true });
