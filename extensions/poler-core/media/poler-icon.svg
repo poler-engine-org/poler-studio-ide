@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <defs>
+    <linearGradient id="polerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ecc71"/>
+      <stop offset="100%" stop-color="#00e6b4"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#polerGrad)" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#2ecc71" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill-opacity="0.2"/>
+  <circle cx="12" cy="12" r="2.5" fill="#00e6b4"/>
+</svg>

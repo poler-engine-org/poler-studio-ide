@@ -14,6 +14,18 @@
   "contributes": {
     "themes": [
       {
+        "id": "Breeze Dark (POLER)",
+        "label": "Breeze Dark (POLER)",
+        "uiTheme": "vs-dark",
+        "path": "./themes/breeze_dark_poler.json"
+      },
+      {
+        "id": "Neon Resonance",
+        "label": "Neon Resonance (Ψ)",
+        "uiTheme": "vs-dark",
+        "path": "./themes/neon_resonance.json"
+      },
+      {
         "id": "Light 2026",
         "label": "%light2026ThemeLabel%",
         "uiTheme": "vs",
@@ -84,6 +96,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
+    "url": "https://github.com/poler-engine-org/poler-studio-ide.git"
   }
 }

@@ -1,0 +1,149 @@
+{
+  "name": "poler-core",
+  "displayName": "POLER Studio Core & Engine Bridge",
+  "description": "Суверенное ядро POLER[Ψ]: Causal Nexus, AIDDE Impact, Топографический поиск, Научная Студия и связка с poler-engine",
+  "version": "1.0.0",
+  "publisher": "poler-engine",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Programming Languages",
+    "Data Science"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "browser": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "poler.resonanceSearch",
+        "title": "POLER: Топографічний резонансний пошук (Ψ)",
+        "category": "POLER"
+      },
+      {
+        "command": "poler.causalImpact",
+        "title": "POLER: Causal Nexus & AIDDE Граф зв'язків символу",
+        "category": "POLER"
+      },
+      {
+        "command": "poler.feedUnderstand",
+        "title": "POLER: Згенерувати контекст архітектури (Feed Understand)",
+        "category": "POLER"
+      },
+      {
+        "command": "poler.feedEdit",
+        "title": "POLER: Згенерувати правочний пакет (Feed Edit)",
+        "category": "POLER"
+      },
+      {
+        "command": "poler.scientificStudio",
+        "title": "POLER: Відкрити Наукову Студію (SciLang + 3D Холст)",
+        "category": "POLER",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "poler.calcExpression",
+        "title": "POLER: Розрахувати вираз (Константи СІ-2019 / Фізика)",
+        "category": "POLER"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "poler.causalImpact",
+          "group": "navigation@10"
+        },
+        {
+          "command": "poler.calcExpression",
+          "group": "1_modification@50"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "poler.resonanceSearch"
+        },
+        {
+          "command": "poler.causalImpact"
+        },
+        {
+          "command": "poler.feedUnderstand"
+        },
+        {
+          "command": "poler.feedEdit"
+        },
+        {
+          "command": "poler.scientificStudio"
+        },
+        {
+          "command": "poler.calcExpression"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "poler.causalImpact",
+        "key": "alt+f12",
+        "mac": "alt+f12",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "poler.scientificStudio",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c"
+      },
+      {
+        "command": "poler.resonanceSearch",
+        "key": "alt+s",
+        "mac": "alt+s"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "poler-explorer",
+          "title": "POLER Studio",
+          "icon": "media/poler-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "poler-explorer": [
+        {
+          "id": "poler.causalView",
+          "name": "Causal Nexus & AIDDE Impact"
+        },
+        {
+          "id": "poler.quickFeedView",
+          "name": "AI Context Generator (Feed)"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "POLER Studio",
+      "properties": {
+        "poler.enginePath": {
+          "type": "string",
+          "default": "",
+          "description": "Шлях до бінарника poler-engine. За замовчуванням визначається автоматично."
+        },
+        "poler.editCorePath": {
+          "type": "string",
+          "default": "",
+          "description": "Шлях до бінарника poler-edit-core для mmap кусочних таблиць."
+        },
+        "poler.resonanceMode": {
+          "type": "string",
+          "enum": ["psi", "poler", "hits", "field"],
+          "default": "psi",
+          "description": "Режим квантового резонансу для пошуку."
+        }
+      }
+    }
+  }
+}
