@@ -83,10 +83,34 @@ export class PolerTextSearchEngine {
 					cleanParts.push(part);
 				}
 				if (cleanParts.length) {
+					// 1. Direct subpath check
 					const subPath = path.join(...cleanParts);
 					const candidate1 = path.join(scanFolder, subPath);
 					if (fs.existsSync(candidate1) && fs.statSync(candidate1).isDirectory()) {
 						scanFolder = candidate1;
+						break;
+					}
+
+					// 2. Relative slice check (handles prefix overlap e.g. "Документы/Cassiopeia")
+					let matchedSubdir = false;
+					for (let i = 0; i < cleanParts.length; i++) {
+						const subSlice = path.join(...cleanParts.slice(i));
+						const candidateSlice = path.join(scanFolder, subSlice);
+						if (fs.existsSync(candidateSlice) && fs.statSync(candidateSlice).isDirectory()) {
+							scanFolder = candidateSlice;
+							matchedSubdir = true;
+							break;
+						}
+					}
+					if (matchedSubdir) {
+						break;
+					}
+
+					// 3. Direct child directory check
+					const lastDir = cleanParts[cleanParts.length - 1];
+					const candidateLast = path.join(scanFolder, lastDir);
+					if (fs.existsSync(candidateLast) && fs.statSync(candidateLast).isDirectory()) {
+						scanFolder = candidateLast;
 						break;
 					}
 				}
