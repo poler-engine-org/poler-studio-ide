@@ -26,8 +26,8 @@ export function getPolerEnginePath(): string | undefined {
 		path.join(process.resourcesPath ?? '', 'bin', exeName),
 		path.join(process.resourcesPath ?? '', 'app', 'resources', 'bin', exeName),
 		// Repo resources/bin
-		path.join(__dirname, '../../../../resources/bin', exeName),
-		path.join(__dirname, '../../../../../resources/bin', exeName),
+		(typeof __dirname !== 'undefined' ? path.join(__dirname, '../../../../resources/bin', exeName) : ''),
+		(typeof __dirname !== 'undefined' ? path.join(__dirname, '../../../../../resources/bin', exeName) : ''),
 		// User home bin
 		path.join(userHome, 'bin', exeName),
 		path.join(userHome, 'bin', 'poler-engine', 'poler-engine-v0.93.0-windows-x86_64', binName),
