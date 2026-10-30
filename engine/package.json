@@ -2,6 +2,10 @@
   "name": "@poler/engine",
   "version": "0.93.0",
   "description": "POLER Engine v0.93.0 - Sovereign High-Velocity Search, Resonance and AI Engine",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
   "author": "POLER Team",
   "license": "MIT",
   "repository": {

@@ -55,15 +55,24 @@ jobs:
           Write-Host "Running preinstall..."
           node build/npm/preinstall.ts
           
-          Write-Host "Running npm ci..."
+          Write-Host "Syncing package-lock.json with workspace dependencies..."
+          npm install --package-lock-only --no-audit
+
+          Write-Host "Installing NPM dependencies..."
           for ($i = 1; $i -le 3; $i++) {
             try {
               npm ci --prefer-offline --no-audit
               break
             } catch {
-              if ($i -eq 3) { throw "npm ci failed after 3 attempts" }
-              Write-Host "Retry $i in 5 seconds..."
-              Start-Sleep -Seconds 5
+              Write-Host "npm ci failed ($($_)), falling back to npm install..."
+              try {
+                npm install --prefer-offline --no-audit
+                break
+              } catch {
+                if ($i -eq 3) { throw "npm install failed after 3 attempts: $($_)" }
+                Write-Host "Retry $i in 5 seconds..."
+                Start-Sleep -Seconds 5
+              }
             }
           }
 
