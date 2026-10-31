@@ -1,0 +1,14 @@
+[package]
+name = "poler-buffer-native"
+version = "0.1.0"
+edition = "2021"
+authors = ["POLER Team"]
+license = "POLER SAML v1.0"
+description = "Native Piece-Table Text Buffer C-ABI DLL for Monaco & POLER Studio"
+
+[lib]
+name = "poler_buffer_native"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+memmap2 = "0.9"

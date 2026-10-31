@@ -49,6 +49,7 @@ import { guessIndentation } from './indentationGuesser.js';
 import { IntervalNode, IntervalTree, recomputeMaxEnd } from './intervalTree.js';
 import { PieceTreeTextBuffer } from './pieceTreeTextBuffer/pieceTreeTextBuffer.js';
 import { PieceTreeTextBufferBuilder } from './pieceTreeTextBuffer/pieceTreeTextBufferBuilder.js';
+import { PolerNativeTextBuffer, PolerNativeTextBufferFactory } from './pieceTreeTextBuffer/polerNativeTextBuffer.js';
 import { SearchParams, TextModelSearch } from './textModelSearch.js';
 import { AttachedViews } from './tokens/abstractSyntaxTokenBackend.js';
 import { TokenizationFontDecorationProvider } from './tokens/tokenizationFontDecorationsProvider.js';
@@ -57,6 +58,9 @@ import { TokenizationTextModelPart } from './tokens/tokenizationTextModelPart.js
 import { IViewModel } from '../viewModel.js';
 
 export function createTextBufferFactory(text: string): model.ITextBufferFactory {
+	if (text.length > 256 * 1024) {
+		return new PolerNativeTextBufferFactory(text);
+	}
 	const builder = new PieceTreeTextBufferBuilder();
 	builder.acceptChunk(text);
 	return builder.finish();
