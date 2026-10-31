@@ -315,7 +315,7 @@ poler_trit_unpack5:
     .p2align 4
 poler_trit_spike_f32:
     # rdi=x, rsi=out, rdx=n, xmm0=θ (scalar in lane 0 -> broadcast to all 4 lanes!)
-    shufps xmm0, xmm0, 0
+    shufps xmm0, xmm0, 0x00          # broadcast θ to all 4 lanes
     movaps xmm7, xmm0                # θ (all 4 lanes)
     movaps xmm6, xmm0
     xorps xmm6, [rip + .Ltr_sb]      # −θ (all 4 lanes)

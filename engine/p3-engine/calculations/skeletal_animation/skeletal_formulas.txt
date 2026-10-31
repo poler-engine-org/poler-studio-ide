@@ -1,0 +1,32 @@
+P3 ENGINE — SKELETAL ANIMATION DERIVATIONS
+============================================================
+
+1. LINEAR BLEND SKINNING (LBS)
+----------------------------------------
+v' = Σᵢ wᵢ * Mᵢ * v  (linear blend of bone transforms)
+  Pros: simple, fast (4x4 matrix multiply)
+  Cons: 'candy wrapper' (volume loss on twist),
+         intersection on large rotations
+
+2. DUAL QUATERNION SKINNING (DQS)
+----------------------------------------
+dq = (q_rot, q_dual)  — 8 floats per bone
+v' = (Σ wᵢ * dqᵢ / ||Σ wᵢ * dqᵢ||) · v  (after normalization)
+  Pros: preserves volume, no candy wrapper, shortest-arc rotation
+  Cons: 2x memory, slightly slower
+
+3. FABRIK (Forward And Backward Reaching IK)
+----------------------------------------
+Each iteration:
+  Backward pass: place end-effector at target,
+                 adjust each joint to preserve distance to next
+  Forward pass: place root at origin,
+                adjust each joint to preserve distance to next
+Convergence: linear for reachable targets, ~5-20 iters
+Cost: O(N) per iteration (N = bones)
+
+4. SLERP (Spherical Linear intERPolation)
+----------------------------------------
+q(t) = (q_A · sin((1-t)·θ/2) + q_B · sin(t·θ/2)) / sin(θ/2)
+  θ = angle between q_A and q_B = arccos(q_A · q_B)
+  Used in DQS for shortest-arc rotation blending

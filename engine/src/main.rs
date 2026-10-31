@@ -243,6 +243,24 @@ struct Cli {
     )]
     asm_info: bool,
 
+    /// PE-SCAN (v1.6.0, Epic 1): статичний аналіз PE32+ (AMD64) — секції,
+    /// таблиця експортів (EAT) з форвардерами, імпорти, SSN-стаби
+    /// (mov r10,rcx; mov eax,imm32; syscall). --json — машиночитаний звіт.
+    #[arg(
+        long = "pe-eat",
+        value_name = "PE_FILE",
+        conflicts_with_all = [
+            "web_search", "crawl", "web_stats", "mcp", "mcp_http", "shell", "exec", "tui",
+            "impact", "browser_index", "web_lens", "web_lens_install", "grep", "chunk",
+            "semantic_expand", "benchmark", "asm_info", "asm_bench"
+        ]
+    )]
+    pe_eat: Option<PathBuf>,
+
+    /// PE-SCAN JSON-звіт (з --pe-eat) — машиночитанийserde::Serialize.
+    #[arg(long = "pe-eat-json", requires = "pe_eat")]
+    pe_eat_json: bool,
+
     /// VAULT-ASM (v0.87.0): бенчмарк микроядер сокровищницы — пропускная
     /// способность (M синапсов/с, GB/s) + сверка каждого ядра со
     /// скалярным эталоном (PASS/FAIL).
@@ -361,13 +379,6 @@ struct Cli {
     /// вхождений, статистика (для ИИ-агента).
     #[arg(long = "grep-json", requires = "grep")]
     grep_json: bool,
-
-    /// Дополнительный корень grep-поиска (multi-root workspace IDE).
-    /// Повторяемый: `poler-engine root1 --grep root2 --grep-root root3`.
-    /// Все корни сканируются в ОДНОМ процессе параллельно через rayon —
-    /// без N процессов на N корней и без общего пула потоков на каждый.
-    #[arg(long = "grep-root", value_name = "PATH", requires = "grep", action = clap::ArgAction::Append)]
-    grep_roots: Vec<PathBuf>,
 
     // ---------- poler_disk_harvester: суб-секундный сбор диска ----------
 
@@ -1409,9 +1420,9 @@ struct Cli {
     #[arg(long = "crystal-build", value_name = "CORPUS_TXT")]
     crystal_build: Option<PathBuf>,
 
-    /// Потокова інгестия директорії з текстами/кодом в кристалл .t5c.
-    #[arg(long = "crystal-ingest-dir", value_name = "DIR")]
-    crystal_ingest_dir: Option<PathBuf>,
+    /// Потокова інгестия директорій та .poler архівів з текстами/кодом в кристалл .t5c.
+    #[arg(long = "crystal-ingest-dir", value_name = "DIR_OR_POLER", num_args = 1..)]
+    crystal_ingest_dir: Vec<PathBuf>,
 
     /// Автогенерація розгорнутого x86_64 асемблерного алгоритму матриці архетипів (50 000+ рядків).
     #[arg(long = "gen-archetype-asm", value_name = "OUT_ASM_PATH")]
@@ -2180,6 +2191,16 @@ fn print_schema_manifest() -> ExitCode {
     ExitCode::SUCCESS
 }
 
+fn human_size(bytes: usize) -> String {
+    if bytes >= 1024 * 1024 {
+        format!("{:.1}MB", bytes as f64 / 1024.0 / 1024.0)
+    } else if bytes >= 1024 {
+        format!("{:.1}KB", bytes as f64 / 1024.0)
+    } else {
+        format!("{bytes}B")
+    }
+}
+
 fn main() -> ExitCode {
 
     // v0.41.0 poler-box: stage2-вхід — викликається exec-хелпером
@@ -2431,7 +2452,7 @@ fn run(cli: Cli) -> ExitCode {
     if cli.crystal_build.is_some() {
         return ExitCode::from(run_crystal_build(&cli) as u8);
     }
-    if cli.crystal_ingest_dir.is_some() {
+    if !cli.crystal_ingest_dir.is_empty() {
         return ExitCode::from(run_crystal_ingest_dir(&cli) as u8);
     }
     if cli.gen_archetype_asm.is_some() {
@@ -2523,29 +2544,13 @@ fn run(cli: Cli) -> ExitCode {
         } else {
             nr::GrepOutput::Content
         };
-        // Корни поиска: позиционный PATH + повторяемые --grep-root
-        // (multi-root workspace IDE: один процесс, rayon-параллелизм
-        // по всем корням). PATH отсутствует → первый --grep-root или ".".
-        let mut roots: Vec<std::path::PathBuf> = Vec::with_capacity(1 + cli.grep_roots.len());
-        if let Some(p) = cli.path.clone() {
-            roots.push(p);
-        }
-        for extra in &cli.grep_roots {
-            roots.push(extra.clone());
-        }
-        if roots.is_empty() {
-            roots.push(std::path::PathBuf::from("."));
-        }
-        // Дедупликация канонических корней: повторный корень не сканируется
-        // дважды (IDE может добавить и корень, и его подпапку-подпроект).
-        let mut seen: Vec<std::path::PathBuf> = Vec::with_capacity(roots.len());
-        for r in roots {
-            let canonical = std::fs::canonicalize(&r).unwrap_or(r);
-            if !seen.contains(&canonical) {
-                seen.push(canonical);
-            }
-        }
-        let roots = seen;
+        // Корни поиска: позиционный PATH (может повторяться неявно —
+        // несколько аргументов clap не поддерживает, но PATH может быть
+        // каталогом) либо текущий каталог.
+        let roots: Vec<std::path::PathBuf> = match cli.path.clone() {
+            Some(p) => vec![p],
+            None => vec![std::path::PathBuf::from(".")],
+        };
         // Архивы: пароль резолвится ДО параллельного прогона — промпт
         // на TTY нельзя звать из rayon-воркеров.
         let archive_password = if cli.archives {
@@ -2826,12 +2831,85 @@ fn run(cli: Cli) -> ExitCode {
     }
 
     // ---------- VAULT-ASM: микроядра сокровищницы (v0.87.0) ----------
+    // v0.93.0 (fix macOS/aarch64): микроядра — x86_64-only; на прочих
+    // архитектурах флаги честно сообщают об отсутствии (кода там нет).
     if cli.asm_info {
-        poler_engine::asm::print_info();
-        return ExitCode::SUCCESS;
+        #[cfg(target_arch = "x86_64")]
+        {
+            poler_engine::asm::print_info();
+            return ExitCode::SUCCESS;
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            eprintln!("asm-info: микроядра сокровищницы — x86_64-only (эта архитектура не поддерживается)");
+            return ExitCode::from(2);
+        }
     }
+    // ---------- PE-SCAN: статичний аналіз PE32+ (v1.6.0, Epic 1) ----------
+    if let Some(pe_path) = &cli.pe_eat {
+        let report = poler_engine::pe_scan::analyze_file(pe_path);
+        match report {
+            Ok(r) => {
+                if cli.pe_eat_json {
+                    match serde_json::to_string_pretty(&r) {
+                        Ok(s) => println!("{s}"),
+                        Err(e) => eprintln!("pe-eat: JSON: {e}"),
+                    }
+                } else {
+                    println!("PE-SCAN: {}", r.path);
+                    println!("  machine={} subsystem={} timestamp={:#x}", r.machine, r.subsystem, r.timestamp);
+                    println!("  entry={:#x} image_base={:#x} size_of_image={:#x} ({})",
+                        r.entry_rva, r.image_base, r.size_of_image, human_size(r.file_size));
+                    println!("  sections: {}", r.sections.len());
+                    for s in &r.sections {
+                        println!("    {:<10} VA={:#010x} VSZ={:#x} RAW={:#x}{}{}",
+                            s.name, s.virtual_address, s.virtual_size, s.raw_size,
+                            if s.is_exec() { " EXEC" } else { "" },
+                            if s.characteristics & 0x8000_0000 != 0 { " WRITE" } else { "" });
+                    }
+                    println!("  imports: {}", r.imports.len());
+                    let mut dlls: Vec<String> = r.imports.iter().map(|s| s.dll.clone()).collect();
+                    dlls.dedup();
+                    dlls.sort(); dlls.dedup();
+                    println!("    dlls: {}", dlls.join(", "));
+                    println!("  exports: {} (dll_name={:?})", r.exports.len(), r.dll_name);
+                    for e in r.exports.iter().take(40) {
+                        match (&e.name, &e.forwarder) {
+                            (Some(n), Some(f)) => println!("    #{} {n} -> {f}", e.ordinal),
+                            (Some(n), None) => println!("    #{} {n} @ {:#x}", e.ordinal, e.rva),
+                            (None, Some(f)) => println!("    #{} (ordinal) -> {f}", e.ordinal),
+                            (None, None) => println!("    #{} (ordinal) @ {:#x}", e.ordinal, e.rva),
+                        }
+                    }
+                    if r.exports.len() > 40 { println!("    … ще {}", r.exports.len() - 40); }
+                    println!("  ssn_stubs: {}", r.ssn_stubs.len());
+                    for st in r.ssn_stubs.iter().take(60) {
+                        println!("    rva={:#010x} ssn={:#06x}{}",
+                            st.rva, st.ssn,
+                            if st.checks_shared_data { " [KUSD-тест]" } else { "" });
+                    }
+                    if r.ssn_stubs.len() > 60 { println!("    … ще {}", r.ssn_stubs.len() - 60); }
+                }
+                return ExitCode::SUCCESS;
+            }
+            Err(e) => {
+                eprintln!("pe-eat: {e}");
+                return ExitCode::from(2);
+            }
+        }
+    }
+
     if cli.asm_bench {
-        return poler_engine::asm::run_bench(cli.asm_synapses, cli.asm_cycles);
+        #[cfg(target_arch = "x86_64")]
+        {
+            return poler_engine::asm::run_bench(cli.asm_synapses, cli.asm_cycles);
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            let _ = (cli.asm_synapses, cli.asm_cycles);
+            eprintln!("asm-bench: микроядра сокровищницы — x86_64-only (эта архитектура не поддерживается)");
+            return ExitCode::from(2);
+        }
     }
 
     // ---------- Веб-индекс: статистика ----------
@@ -6868,20 +6946,61 @@ fn run_crystal_build(cli: &Cli) -> i32 {
 
 fn run_crystal_ingest_dir(cli: &Cli) -> i32 {
     use poler_engine::triune::{IngestConfig, StreamCrystalBuilder};
-    let dir = cli.crystal_ingest_dir.as_ref().unwrap();
+    use poler_engine::archive::reader::PolerReader;
+    if cli.crystal_ingest_dir.is_empty() {
+        eprintln!("crystal-ingest-dir: не вказано жодної директорії або .poler архіву");
+        return 2;
+    }
     let mut cfg = IngestConfig::default();
     cfg.vocab = cli.crystal_vocab;
     let mut builder = StreamCrystalBuilder::new(cfg);
-    println!("потоковая ингестия текстов из: {}", dir.display());
-    match builder.feed_dir(dir) {
-        Ok(count) => {
-            println!("  прочитано файлов: {count}");
-        }
-        Err(e) => {
-            eprintln!("crystal-ingest-dir: ошибка чтения директории {dir:?}: {e}");
-            return 2;
+    let mut total_files = 0usize;
+
+    for target in &cli.crystal_ingest_dir {
+        println!("потоковая ингестия из: {}", target.display());
+        if target.is_dir() {
+            match builder.feed_dir(target) {
+                Ok(count) => {
+                    println!("  прочитано файлов из папки: {count}");
+                    total_files += count;
+                }
+                Err(e) => {
+                    eprintln!("crystal-ingest-dir: ошибка чтения директории {target:?}: {e}");
+                }
+            }
+        } else if target.extension().map_or(false, |e| e == "poler") {
+            match PolerReader::open(target) {
+                Ok(reader) => match builder.feed_poler(&reader) {
+                    Ok(count) => {
+                        println!("  прочитано записей из архива {}: {count}", target.display());
+                        total_files += count;
+                    }
+                    Err(e) => {
+                        eprintln!("crystal-ingest-dir: ошибка чтения архива {target:?}: {e}");
+                    }
+                },
+                Err(e) => {
+                    eprintln!("crystal-ingest-dir: невозможно открыть .poler {target:?}: {e}");
+                }
+            }
+        } else {
+            // Одиночный файл
+            match builder.feed_file(target) {
+                Ok(true) => {
+                    println!("  прочитан файл: {}", target.display());
+                    total_files += 1;
+                }
+                Ok(false) => {
+                    println!("  пропущен бинарный файл: {}", target.display());
+                }
+                Err(e) => {
+                    eprintln!("crystal-ingest-dir: ошибка файла {target:?}: {e}");
+                }
+            }
         }
     }
+    println!("всего источников обработано: {total_files}");
+
     let (crystal, stats) = match builder.finalize() {
         Ok(res) => res,
         Err(e) => {
@@ -6890,7 +7009,7 @@ fn run_crystal_ingest_dir(cli: &Cli) -> i32 {
         }
     };
     let out = cli.crystal_out.clone().unwrap_or_else(|| {
-        let mut p = dir.clone();
+        let mut p = cli.crystal_ingest_dir[0].clone();
         p.set_extension("t5c");
         p
     });

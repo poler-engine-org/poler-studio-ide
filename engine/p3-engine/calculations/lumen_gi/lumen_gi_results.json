@@ -1,0 +1,31 @@
+{
+  "module": "lumen_gi",
+  "formulas": {
+    "SH_L2_coefficients": "9 coefficients: Y_0^0, Y_1^-1..1, Y_2^-2..2",
+    "irradiance_reconstruction": "E(n) \u2248 c0 + c1*n + c2*(3n_z\u00b2-1)/2 + c3*(n_x\u00b2-n_y\u00b2)",
+    "sdf_definition": "f(p) = signed distance from p to nearest surface; positive=outside, negative=inside",
+    "ray_marching_sdf": "t += min(distance, max_step); stop when |f| < \u03b5",
+    "clamped_cos_sh": "ClampedCos projected onto L2: dominant direction L1=\u03c0/3 along n"
+  },
+  "lumen_pipeline_steps": [
+    "1. Precompute SDF per mesh (per-vertex SDF, merged to global SDF atlas)",
+    "2. Trace rays against SDF (not actual geometry) \u2014 much faster than BVH",
+    "3. Hit points cached in surface cache (parameterized by UVs)",
+    "4. Final gather: spherical harmonics at each surface point \u2192 diffuse irradiance",
+    "5. Specular: radiance cache (roughness-indexed mip chain)",
+    "6. Combine: direct lighting + indirect diffuse (SH) + indirect specular (radiance cache)"
+  ],
+  "memory_estimate": {
+    "sdf_atlas_64x64_per_mesh": "16KB per mesh (f32 distances)",
+    "surface_cache_512x512": "1MB per scene (RGBA8 radiance)",
+    "sh_per_probe_9_coeffs": "144 bytes (9 \u00d7 f32 RGB) per probe",
+    "probe_grid_8x8x8": "73KB (512 probes \u00d7 144 bytes)"
+  },
+  "implementation_notes": [
+    "Start with diffuse-only GI (skip specular cache \u2014 too complex)",
+    "Use SH L2 (9 coeffs) \u2014 captures 1 bounce",
+    "SDF generation: Jump Flooding Algorithm on GPU, or CPU per-mesh",
+    "Surface cache update: dirty-rect scheme (only update changed cells)",
+    "Lumen reference: Epic SIGGRAPH 2021 talk"
+  ]
+}

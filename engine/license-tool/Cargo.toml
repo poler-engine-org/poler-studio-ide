@@ -1,0 +1,17 @@
+[package]
+name = "poler-license-tool"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.80"
+authors = ["POLER Engineering Core"]
+description = "ОФЛАЙН-инструмент владельца POLER Engine: генерация ключевой пары ed25519 и выпуск лицензий PO1. НЕ распространяется с бинарником движка."
+
+[dependencies]
+ed25519-dalek = "2"
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

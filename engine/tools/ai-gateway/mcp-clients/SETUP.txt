@@ -1,0 +1,45 @@
+poler-api → MCP-клиенты (Claude Desktop / Cursor / Cline / любой stdio-клиент)
+=============================================================================
+
+ЧТО ПОЛУЧАЕТ МОДЕЛЬ ПОСЛЕ ПОДКЛЮЧЕНИЯ (34 инструмента, без единой подсказки):
+  32 инструмента движка: poler_calc (Калькулятор Всего), poler_quantum
+  (bell/ghz/qft/grover/qaoa/teleport, n<=26), poler_triune_speak/state
+  (внутренняя нейросеть — Триединство), poler_fly_* x10 (коннектом мозга мухи),
+  poler_ssn_* (синаптический вихрь), poler_search/grep, poler_web_search ...
+  + 2 нативных перехвата шлюза: poler_matrix_det (детерминант континуантой
+  O(n)/LU — БЕЗ лимита билдера tridiag n<=64) и poler_matrix_eigen_sturm
+  (Штурм-бисекция, симметричные матрицы n<=512+ на машинной точности —
+  вместо взрыва Уилкинсона у eigen движка при n>=28).
+
+ТРЕБОВАНИЯ:
+  1. poler-engine 0.61.0 в PATH (MCP-прокси порождает движок как дочерний процесс)
+  2. poler-api в PATH (или абсолютный путь в конфиге — см. ниже)
+
+CLAUDE DESKTOP (формат mcpServers одинаков почти для всех MCP-клиентов):
+  macOS  : ~/Library/Application Support/Claude/claude_desktop_config.json
+  Windows: %APPDATA%\Claude\claude_desktop_config.json
+  1. Открой файл (создай, если его нет), вставь содержимое
+     claude_desktop_config.example.json
+  2. Замени /home/USER/ на свой домашний каталог (2 места: command и env.PATH)
+  3. Полностью перезапусти приложение
+  4. Проверка: в чате спроси «какие poler-инструменты тебе видны» —
+     модель сама перечислит арсенал; квант/нейросеть/Штурм больше не скрыты
+
+CURSOR (Linux/macOS/Windows):
+  глобально: ~/.cursor/mcp.json   |   на проект: <проект>/.cursor/mcp.json
+  1. Вставь содержимое cursor_mcp.example.json, замени путь
+  2. Cursor: Settings -> MCP -> refresh
+  3. В чате инструменты доступны модели автоматически
+
+ПРОВЕРКА ДО ПОДКЛЮЧЕНИЯ GUI (в терминале, ~6 секунд):
+  bash generic_stdio_smoke.sh
+  ожидаемый результат:
+    initialize : OK
+    инструменты: 34 (движок 32 + нативные шлюза 2)
+
+ЧЕСТНЫЕ ГРАНИЦЫ (полная карта: poler-api schema):
+  * eigen движка      n<=24 надёжен, n>=28 взрыв Уилкинсона (charpoly O(n!))
+                      -> используй poler_matrix_eigen_sturm
+  * Штурм-ядро шлюза  только СИММЕТРИЧНЫЕ матрицы, n<=512+, точность ~1e-13
+  * квант движка      n<=26 (плотный statevector 2^N x 16 байт RAM)
+  * несимметричный спектр — единственный честный пробел (нужна QR-итерация)

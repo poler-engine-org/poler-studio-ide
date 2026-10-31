@@ -563,6 +563,14 @@ fn emit_group_block(
 
 /// Скомпилировать ядро скоринга для пары (лиганд, поле кармана).
 pub fn compile_scoring_kernel(lig: &LigandPrep, field: &PocketField) -> Result<JitScoringKernel, String> {
+    // v0.93.0 (fix macOS/aarch64 CI): эмиттер генерирует AVX2-опкоды x86_64 —
+    // на прочих архитектурах честный отказ (скалярный путь скоринга остаётся).
+    #[cfg(not(target_arch = "x86_64"))]
+    {
+        let _ = (lig, field);
+        return Err("JIT-ядро скоринга — x86_64/AVX2 only (эта архитектура не поддерживается)".into());
+    }
+    #[cfg(target_arch = "x86_64")]
     if !std::arch::is_x86_feature_detected!("avx2") {
         return Err("AVX2 не обнаружен — JIT-ядро скоринга недоступно".into());
     }

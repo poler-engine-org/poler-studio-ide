@@ -1,0 +1,12 @@
+{
+  "name": "browser-service",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun --hot index.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1",
+    "playwright": "^1.63.0"
+  }
+}

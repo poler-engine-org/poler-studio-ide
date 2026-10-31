@@ -182,25 +182,31 @@ pub struct CpuFeatures {
 }
 
 pub fn probe_cpu_x86() -> CpuFeatures {
-    let mut brand = [b' '; 48];
-    let mut has_vmx = false;
-    let mut has_svm = false;
-    let mut has_avx2 = false;
-    let mut has_fma = false;
-    let mut hypervisor_bit = false;
-
+    // mut только там, где brand заполняет CPUID-ветка (x86_64);
+    // на прочих архитектурах — unused_mut
     #[cfg(target_arch = "x86_64")]
-    unsafe {
+    let mut brand = [b' '; 48];
+    #[cfg(not(target_arch = "x86_64"))]
+    let brand = [b' '; 48];
+
+    // v0.93.0 (CI-гейт): одно присваивание на флаг — прежние
+    // `let mut x = false` перед безусловным CPUID-назначением были
+    // мёртвыми (unused_assignments), а `unsafe`-блок — избыточным
+    // (CPUID-интринсики безопасны в текущем stable). Не-x86_64 —
+    // консервативный false (гипервизор-детект недоступен).
+    #[cfg(target_arch = "x86_64")]
+    let (has_vmx, has_svm, has_avx2, has_fma, hypervisor_bit) = {
         use core::arch::x86_64::__cpuid;
         let c1 = __cpuid(1);
-        has_vmx = (c1.ecx & (1 << 5)) != 0;
-        has_fma = (c1.ecx & (1 << 12)) != 0;
-        hypervisor_bit = (c1.ecx & (1 << 31)) != 0;
+        let has_vmx = (c1.ecx & (1 << 5)) != 0;
+        let has_fma = (c1.ecx & (1 << 12)) != 0;
+        let hypervisor_bit = (c1.ecx & (1 << 31)) != 0;
 
         let c7 = __cpuid(7);
-        has_avx2 = (c7.ebx & (1 << 5)) != 0;
+        let has_avx2 = (c7.ebx & (1 << 5)) != 0;
 
         let ext_max = __cpuid(0x8000_0000).eax;
+        let mut has_svm = false;
         if ext_max >= 0x8000_0001 {
             let ext1 = __cpuid(0x8000_0001);
             has_svm = (ext1.ecx & (1 << 2)) != 0;
@@ -223,7 +229,11 @@ pub fn probe_cpu_x86() -> CpuFeatures {
                 }
             }
         }
-    }
+        (has_vmx, has_svm, has_avx2, has_fma, hypervisor_bit)
+    };
+    #[cfg(not(target_arch = "x86_64"))]
+    let (has_vmx, has_svm, has_avx2, has_fma, hypervisor_bit) =
+        (false, false, false, false, false);
 
     CpuFeatures {
         brand,

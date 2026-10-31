@@ -87,7 +87,8 @@ poler_cordic_sincos:
     # --- редукция: angle -> [-π, π] ---
     vmulss xmm1, xmm0, [rip + .Lc_i2pi]
     vroundss xmm1, xmm1, xmm1, 8            # round-to-nearest
-    vfnmadd231ss xmm0, xmm1, [rip + .Lc_2pi] # angle -= k·2π
+    vmulss xmm2, xmm1, [rip + .Lc_2pi]
+    vsubss xmm0, xmm0, xmm2                  # angle -= k·2π
     xor r11d, r11d                           # флаг квадранта
     vcomiss xmm0, [rip + .Lc_hpi]
     jbe 2f
@@ -167,7 +168,8 @@ poler_cordic_atan2:
     vrcpss xmm4, xmm4, xmm2                # r ≈ 1/m (src2 — заглушка)
     # Ньютон: r ← r·(2 − m·r)
     vmovss xmm5, [rip + .Lc_two]
-    vfnmadd231ss xmm5, xmm2, xmm4           # 2 − m·r
+    vmulss xmm6, xmm2, xmm4                 # m·r
+    vsubss xmm5, xmm5, xmm6                 # 2 − m·r
     vmulss xmm4, xmm4, xmm5                 # r·(2 − m·r)
     vmulss xmm4, xmm4, [rip + .Lc_q26]
     vmulss xmm0, xmm0, xmm4                  # y·s

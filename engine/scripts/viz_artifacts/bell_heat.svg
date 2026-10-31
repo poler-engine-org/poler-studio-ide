@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 273" font-family="monospace">
+<rect width="420" height="273" fill="#ffffff"/>
+<text x="210" y="22" font-size="14.0" font-weight="bold" fill="#111827" text-anchor="middle">Матрица 4×4</text>
+<rect x="56.0" y="34.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="56.0" y="34.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="79.0" y="60.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="102.0" y="34.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="102.0" y="34.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="125.0" y="60.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="148.0" y="34.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="148.0" y="34.0" width="45" height="45" fill="#ef4444" fill-opacity="1.000" stroke="#d1d5db"/>
+<text x="171.0" y="60.5" font-size="10" fill="#ffffff" text-anchor="middle">1</text>
+<rect x="194.0" y="34.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="194.0" y="34.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="217.0" y="60.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="56.0" y="80.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="56.0" y="80.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="79.0" y="106.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="102.0" y="80.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="102.0" y="80.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="125.0" y="106.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="148.0" y="80.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="148.0" y="80.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="171.0" y="106.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="194.0" y="80.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="194.0" y="80.0" width="45" height="45" fill="#3b82f6" fill-opacity="1.000" stroke="#d1d5db"/>
+<text x="217.0" y="106.5" font-size="10" fill="#ffffff" text-anchor="middle">-1</text>
+<rect x="56.0" y="126.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="56.0" y="126.0" width="45" height="45" fill="#ef4444" fill-opacity="1.000" stroke="#d1d5db"/>
+<text x="79.0" y="152.5" font-size="10" fill="#ffffff" text-anchor="middle">1</text>
+<rect x="102.0" y="126.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="102.0" y="126.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="125.0" y="152.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="148.0" y="126.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="148.0" y="126.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="171.0" y="152.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="194.0" y="126.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="194.0" y="126.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="217.0" y="152.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="56.0" y="172.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="56.0" y="172.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="79.0" y="198.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="102.0" y="172.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="102.0" y="172.0" width="45" height="45" fill="#3b82f6" fill-opacity="1.000" stroke="#d1d5db"/>
+<text x="125.0" y="198.5" font-size="10" fill="#ffffff" text-anchor="middle">-1</text>
+<rect x="148.0" y="172.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="148.0" y="172.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="171.0" y="198.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<rect x="194.0" y="172.0" width="45" height="45" fill="#ffffff" stroke="#d1d5db"/>
+<rect x="194.0" y="172.0" width="45" height="45" fill="#ef4444" fill-opacity="0.120" stroke="#d1d5db"/>
+<text x="217.0" y="198.5" font-size="10" fill="#111827" text-anchor="middle">0</text>
+<text x="56" y="248.0" font-size="10" fill="#111827">4×4 · |max| = 1 · Re(след) = 0 · красный ≥ 0, синий &lt; 0</text>
+</svg>

@@ -1,0 +1,49 @@
+{
+  "module": "particle_system",
+  "formulas": {
+    "cubic_bezier": "B(t) = (1-t)\u00b3 P0 + 3(1-t)\u00b2 t P1 + 3(1-t) t\u00b2 P2 + t\u00b3 P3",
+    "curl_2d": "curl = (\u2202P/\u2202y, -\u2202P/\u2202x)  where P is potential field",
+    "semi_implicit_euler": "v' = v + a*dt;  p' = p + v'*dt",
+    "verlet": "p_new = 2*p - p_prev + a*dt\u00b2"
+  },
+  "life_curve_control_points": {
+    "P0_spawn": [
+      0.0,
+      0.0
+    ],
+    "P1_ramp_up": [
+      0.3,
+      0.5
+    ],
+    "P2_peak": [
+      0.7,
+      1.0
+    ],
+    "P3_fade_out": [
+      1.0,
+      0.0
+    ],
+    "rationale": "particle fades in, peaks near mid-life, fades out"
+  },
+  "integration_test": {
+    "initial_position": [
+      0.0,
+      5.0,
+      0.0
+    ],
+    "initial_velocity": [
+      3.0,
+      8.0,
+      0.0
+    ],
+    "max_error_euler_vs_analytical": 0.07534079999999754,
+    "max_error_verlet_vs_analytical": 0.07534079999951793,
+    "conclusion": "both methods accurate for short time (60 frames = 1s). Verlet better for long simulations"
+  },
+  "implementation_notes": [
+    "Use semi-implicit Euler for sparks (short-lived, <1s)",
+    "Use Verlet for cloth (long simulations, energy conservation)",
+    "Curl noise: precompute potential field at 16x16 grid, sample with bilinear interpolation",
+    "Life curves: cubic Bezier with 4 control points per particle emitter (intensity, size, color)"
+  ]
+}

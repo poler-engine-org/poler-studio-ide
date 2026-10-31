@@ -1,0 +1,41 @@
+{
+ "verdict": true,
+ "results": {
+  "V1": true,
+  "V2": true,
+  "V3": true,
+  "V4": true,
+  "V5": true,
+  "V6": true,
+  "V7": true,
+  "V8": true,
+  "V9": true
+ },
+ "meta": {
+  "n_samples": 44100,
+  "archetype": "a_calm",
+  "formants_target_hz": [
+   730,
+   1090,
+   2440
+  ],
+  "formants_actual_hz": [
+   730.2044000000001,
+   1088.7247,
+   2445.9536
+  ],
+  "f0_base": 120.0,
+  "seed": 54324593501187021,
+  "lyapunov_dissipation_ok": true,
+  "mcweeny_residual": 5.563543936865634e-15,
+  "mcweeny_iterations": 7,
+  "coherence_eigs_top3": [
+   0.3957115204607374,
+   0.31000528539609745,
+   0.13550477875835834
+  ],
+  "jitter_factor_std_pct": 0.455264449604343,
+  "shimmer_factor_std_pct": 6.450912320251214,
+  "n_periods": 239
+ }
+}

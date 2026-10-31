@@ -1,0 +1,15 @@
+{
+ "type": "Unigram",
+ "unk_id": 3,
+ "byte_fallback": false,
+ "vocab_size": 250002,
+ "pre_tokenizer": {
+  "type": "Metaspace",
+  "replacement": "▁",
+  "add_prefix_space": true
+ },
+ "bos": 0,
+ "eos": 2,
+ "pad": 1,
+ "mask": 250001
+}

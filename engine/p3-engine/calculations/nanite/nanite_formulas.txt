@@ -1,0 +1,34 @@
+P3 ENGINE — NANITE VIRTUALIZED GEOMETRY DERIVATIONS
+============================================================
+
+1. SCREEN-SPACE ERROR (LOD selection)
+----------------------------------------
+ε_screen = ρ × r / d
+  ρ = pixel density (texels per meter on screen)
+  r = cluster bounding sphere radius (m)
+  d = camera-to-cluster distance (m)
+Switch to lower LOD when ε_screen > threshold (4 pixels typical)
+
+2. QEM (Quadric Error Metrics) for mesh simplification
+----------------------------------------
+Each vertex accumulates a 4×4 symmetric quadric K:
+  K = Σ planes (planes = face normals + offsets)
+  For plane n·v + d = 0: K_plane = (n,d)ᵀ (n,d)
+Error of moving vertex to v': Q(v') = v'ᵀ K v'
+Optimal v' minimizes Q → solve K v' = [0, 0, 0, 1]ᵀ
+
+3. CLUSTER HIERARCHY (DAG of clusters)
+----------------------------------------
+Base mesh: n triangles
+Level 0 (finest): n triangles, in clusters of 128
+Level 1: n/2 triangles (parent = simplified union of 2 children)
+Level k: n/2^k triangles
+Until cluster size < 128: stop subdivision
+Total memory: ≈ 2n triangles (sum of geometric series 1 + 1/2 + 1/4 + ...)
+
+4. VISIBILITY CULLING (Hierarchical Z-Buffer)
+----------------------------------------
+For each cluster: project bounding sphere to screen
+If screen radius < 1 pixel: cull
+If bounding sphere behind Hi-Z tile: occlusion cull
+Surviving clusters: rasterize via mesh shaders (128 tris per draw call)

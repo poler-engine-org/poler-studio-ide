@@ -1,0 +1,29 @@
+P3 ENGINE — LUMEN GI DERIVATIONS
+============================================================
+
+1. SPHERICAL HARMONICS L2 (9 coefficients)
+----------------------------------------
+Y_0^0  = 1/(2√π)
+Y_1^-1 = -√(3/4π) · sin(θ)·sin(φ)
+Y_1^0  =  √(3/4π) · cos(θ)
+Y_1^1  =  √(3/4π) · sin(θ)·cos(φ)
+Y_2^-2 =  √(15/4π)/√3 · sin²(θ)·sin(φ)·cos(φ)
+Y_2^-1 = -√(15/4π)/√3 · sin(θ)·cos(θ)·sin(φ)
+Y_2^0  =  √(5/16π) · (3cos²(θ) - 1)
+Y_2^1  =  √(15/4π)/√3 · sin(θ)·cos(θ)·cos(φ)
+Y_2^2  =  √(15/16π) · sin²(θ)·cos(2φ)
+
+2. SIGNED DISTANCE FIELD (SDF)
+----------------------------------------
+f(p) = signed distance from p to nearest surface
+  f > 0: outside;  f < 0: inside;  f = 0: on surface
+Ray march: t += max(min_distance, ε)
+  Stop when |f(p)| < ε (hit) or t > max_t (miss)
+  SDF allows large steps in empty space (vs fixed-step raycast)
+
+3. CLAMPED COSINE SH PROJECTION
+----------------------------------------
+max(cos(θ), 0) projected onto SH L1 (only first 3 coeffs non-zero):
+  c0 = π/3
+  c1 = π/3 * (3·cos(θ_light)·dir) → dominant direction
+Reconstruction: E(n) ≈ c0 + c1·n + c2·(3n_z²-1)/2

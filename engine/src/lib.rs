@@ -144,6 +144,9 @@ pub mod asm_rotors;
 /// на чистом x86_64-ассемблере — docs/VAULT_ASM.md.
 #[cfg(target_arch = "x86_64")]
 pub mod asm;
+/// v0.93.0: архитектурно-независимое ядро [N:D] + фасад над VAULT-ASM
+/// (fix macOS/aarch64 CI: чистая семантика — все архитектуры, SIMD — cfg).
+pub mod asm_compat;
 /// Голос учёного: токенизатор → роторы → химия → триединое ядро
 pub mod scivoice;
 
@@ -161,6 +164,9 @@ pub mod graph;
 pub mod license;
 pub mod literary;
 pub mod ssn;
+/// PE-SCAN (v1.6.0, Epic 1): статичний аналіз PE32+ — EAT/форвардери,
+/// імпорти, SSN-стаби. Без OS-залежностей (на відміну від winpe).
+pub mod pe_scan;
 pub mod search;
 pub mod triune;
 pub mod llm;

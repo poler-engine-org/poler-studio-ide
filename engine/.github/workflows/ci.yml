@@ -1,0 +1,182 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+# M2 (docs/MERGE_PLAN.md): квантовые крейты pqc/pqw живут в этом репозитории
+# (crates/, единый Cargo Workspace) — никаких секретов и соседних клонов
+# больше не требуется: обычный checkout собирает всё.
+
+jobs:
+  # Полный тест-сьют — каноническая джоба (ubuntu). macOS несёт
+  # только портируемость компиляции: 22 gateway/hostexec/pty-теста
+  # завязаны на Linux-поведение (canonicalization /tmp, PTY-IO,
+  # mount-спецификации) — им НЕчего проверять на darwin; полный сьют
+  # там честно не проходит и не должен.
+  test:
+    name: Тесты и линтер (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: "Clippy (гейт: unused/dead_code + correctness; стилевые — предупреждения)"
+        run: cargo clippy --workspace --all-targets --jobs 2 -- -D unused -D clippy::correctness
+
+      - name: "Тесты (unit + integration, весь workspace: poler-engine + pqc + pqw)"
+        run: cargo test --workspace --all-targets --jobs 2
+
+      - name: Release-сборка
+        run: cargo build --release --locked --jobs 2
+
+      - name: Смоук-тест бинарника
+        run: |
+          ./target/release/poler-engine --version
+          ./target/release/poler-engine tests/fixtures -q "нокс" --format simple
+          ./target/release/poler-engine tests/fixtures -q "compute" --format simple
+          ./target/release/poler-engine tests/fixtures --impact compute
+
+      - name: Микробенчмарк
+        run: cargo run --release --example bench
+
+  # macOS: портируемость кода (clippy-гейт + компиляция release).
+  # Тесты Linux-специфики здесь не гоняются (см. комментарий выше).
+  check-macos:
+    name: "Портируемость (macos-latest): clippy + сборка"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: "Clippy (гейт: unused/dead_code + correctness; стилевые — предупреждения)"
+        run: cargo clippy --workspace --all-targets --jobs 2 -- -D unused -D clippy::correctness
+
+      - name: "Компиляция (release, --locked): код собирается на darwin/aarch64"
+        run: cargo build --release --locked -p poler-engine --jobs 2
+
+  # M4 (docs/UNIFIED_ARCHITECTURE.md): крипто-ядро Zig (os/core, PND v8.2
+  # с P0-фиксами аудита Шнайера) + C-ABI мост в Rust. Двойная зелёность
+  # обязательна: zig build test (ядро + parity) и cargo --features pnd-ffi.
+  zig-core:
+    name: Крипто-ядро Zig (os/core) + Rust FFI мост
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установить Zig 0.14.0
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.14.0
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: "Тесты крипто-ядра PND v8.2 (30: ядро + P0 аудита + C-ABI parity)"
+        run: |
+          cd os/core
+          zig build test
+
+      - name: "Rust FFI (фича pnd-ffi): golden-связка Zig-Rust + крипто-слой данных"
+        run: |
+          cd os/core && zig build -Doptimize=ReleaseFast && cd ../..
+          cargo test --lib --features pnd-ffi --jobs 2
+
+      - name: "POLER Vault smoke: seal → verify → open → cmp (без ключа и с ключом)"
+        run: |
+          cargo build --release --features pnd-ffi --bin poler-engine --jobs 2
+          head -c 1048576 /dev/urandom > /tmp/vault-src.bin
+          export POLER_VAULT_KEY="ci-smoke-key"
+          ./target/release/poler-engine --memory-seal /tmp/vault-src.bin --memory-content-id
+          unset POLER_VAULT_KEY
+          ./target/release/poler-engine --memory-verify /tmp/vault-src.bin.pvt
+          ./target/release/poler-engine --memory-info /tmp/vault-src.bin.pvt
+          export POLER_VAULT_KEY="ci-smoke-key"
+          ./target/release/poler-engine --memory-open /tmp/vault-src.bin.pvt --memory-out /tmp/vault-out.bin
+          cmp /tmp/vault-src.bin /tmp/vault-out.bin
+          # подмена байта должна ловиться без ключа
+          python3 -c "
+          d = bytearray(open('/tmp/vault-src.bin.pvt','rb').read()); d[5000] ^= 1
+          open('/tmp/vault-bad.pvt','wb').write(bytes(d))"
+          unset POLER_VAULT_KEY
+          if ./target/release/poler-engine --memory-verify /tmp/vault-bad.pvt; then
+            echo "FAIL: подмена не обнаружена"; exit 1
+          fi
+          echo "Vault smoke OK: roundtrip + tamper-detection"
+
+      - name: "MVR-верификатор: побитовая сверка Python против Zig (54 626 golden-векторов)"
+        run: |
+          python3 -m pip install --user numpy z3-solver
+          python3 tools/verifiers/verify_pnd_full.py --sections golden
+
+  docker:
+    name: Docker-образ
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Сборка образа
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: poler-engine:ci
+          load: true
+
+      - name: Смоук-тест контейнера
+        run: |
+          docker run --rm poler-engine:ci --version
+          docker run --rm -v "${PWD}/tests/fixtures:/data" poler-engine:ci /data -q "нокс" --format simple
+
+  release:
+    name: Релиз (по тегу v*)
+    needs: [test]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    # 403 "Resource not accessible by integration" у softprops/action-gh-release
+    # на v0.62.0/v0.63.0: дефолтный GITHUB_TOKEN не может создавать релизы без
+    # явного permissions. contents: write — создание релиза и загрузка ассетов.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Release-сборка
+        run: cargo build --release --locked
+
+      - name: Упаковка артефактов
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          mkdir -p dist/poler-engine
+          cp -r src tests examples docs crates Cargo.toml Cargo.lock README.md FUTURE_ROADMAP.md INSTALL.md GLOSSARY.md CONTRIBUTING.md Dockerfile LICENSE.md TERMS.md dist/poler-engine/
+          cp target/release/poler-engine dist/poler-engine/poler-engine-bin
+          tar -czf "dist/poler-engine-${VERSION}-linux-x86_64.tar.gz" -C dist poler-engine
+          tar --exclude='poler-engine/poler-engine-bin' -czf "dist/poler-engine-${VERSION}-src.tar.gz" -C dist poler-engine
+          sha256sum dist/*.tar.gz > dist/SHA256SUMS.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS.txt

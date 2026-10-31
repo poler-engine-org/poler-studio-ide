@@ -98,8 +98,9 @@ extern "sysv64" {
     fn poler_lens_popcount(flags: *const u64, n: usize, require: u64) -> u64;
 }
 
-/// Канонический порог сокровищницы (lens_index.rs: `weight > 0.05`).
-pub const LENS_MIN_W: f32 = 0.05;
+// v0.93.0: LENS_MIN_W и скалярный эталон живут в crate::asm_compat
+// (архитектурная независимость); пути сохранены реэкспортами.
+pub use crate::asm_compat::{LENS_MIN_W, lens_filter_scalar as filter_scalar};
 
 /// No-Hits барьер: компакция индексов выживших рёбер.
 ///
@@ -130,27 +131,6 @@ pub fn filter(
     }
 }
 
-/// Скалярный эталон барьера (для тестов и не-x86_64).
-pub fn filter_scalar(
-    w: &[f32],
-    flags: &[u64],
-    out: &mut [u32],
-    min_w: f32,
-    require: u64,
-    forbid: u64,
-) -> usize {
-    let mut count = 0;
-    for i in 0..w.len().min(flags.len()).min(out.len()) {
-        let ok = w[i] > min_w
-            && (flags[i] & require) == require
-            && (flags[i] & forbid) == 0;
-        if ok {
-            out[count] = i as u32;
-            count += 1;
-        }
-    }
-    count
-}
 
 /// Плотность require-маски: Σ popcnt(flags & require). Нужен POPCNT.
 pub fn popcount(flags: &[u64], require: u64) -> u64 {

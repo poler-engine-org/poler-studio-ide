@@ -1,0 +1,42 @@
+/target
+license-tool/target/
+Cargo.lock.bak
+*.profraw
+test-web.db
+models/
+/scratch/
+
+# Суверенный Гиппокамп: локальные бенчмарковые БД знаний
+/.knowledge-bench/
+
+# Python-кэш инструментов (tools/knowledge_engine и др.)
+__pycache__/
+*.pyc
+
+# Zig-артефакты крипто-ядра (os/core)
+os/core/zig-out/
+os/core/.zig-cache/
+
+# FlyWire v783: сырые исходники Zenodo (1.1 ГБ) — вне git, см. docs/flywire-connectome/README.md
+docs/flywire-connectome/raw/
+scripts/shannon_bypass/native_pc_scripts/litgraph_eteryya/results/
+
+# P³ Engine (vendored): артефакты сборки Zig
+/p3-engine/zig-out/
+/p3-engine/.zig-cache/
+
+.local/
+node_modules/
+scripts/node_modules/
+build/
+integrations/*/build/
+chatglm3-6b-int4-parts/
+corpus_extracted/
+*.t5c
+*.poler
+
+docs/FULL_CHAT_SESSION.md
+
+# Сборочные .poler-архивы (постоянный архиватор, scripts/poler_build.sh) — регенерируемы
+builds/
+dist/

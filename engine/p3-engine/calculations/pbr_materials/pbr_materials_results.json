@@ -1,0 +1,45 @@
+{
+  "module": "pbr_materials",
+  "formulas": {
+    "D_GGX": "D(N,H,\u03b1) = \u03b1\u00b2 / (\u03c0 * ((N\u00b7H)\u00b2 * (\u03b1\u00b2 - 1) + 1)\u00b2)",
+    "G_Smith_GGX": "G(N,V,L,\u03b1) = G1(N\u00b7V,\u03b1) * G1(N\u00b7L,\u03b1), G1(N\u00b7X,\u03b1) = 2*N\u00b7X / (N\u00b7X + sqrt(\u03b1\u00b2 + (1-\u03b1\u00b2)*(N\u00b7X)\u00b2))",
+    "F_Schlick": "F(V,H,F0) = F0 + (1 - F0) * (1 - V\u00b7H)\u2075",
+    "Cook_Torrance_BRDF": "f_r = k_D * (albedo/\u03c0) + (D * G * F) / (4 * (N\u00b7V) * (N\u00b7L))"
+  },
+  "brdf_lut": {
+    "size": "64\u00d764",
+    "sample_count_per_pixel": 64,
+    "sampler": "Hammersley low-discrepancy sequence",
+    "scale_range": [
+      0.14731455986402792,
+      4367.17277689633
+    ],
+    "bias_range": [
+      0.14731455986402792,
+      4367.17277689633
+    ],
+    "binary_path": "brdf_lut.bin (256KB, raw f32 scale + 256KB bias)"
+  },
+  "typical_F0_values": {
+    "water": 0.02,
+    "skin": 0.028,
+    "iron": 0.56,
+    "aluminum": 0.91,
+    "gold_F0_RGB": [
+      1.0,
+      0.71,
+      0.29
+    ],
+    "silver_F0_RGB": [
+      0.97,
+      0.96,
+      0.91
+    ]
+  },
+  "implementation_notes": [
+    "Precompute brdf_lut.bin once at startup, store in p3_renderer",
+    "Per-pixel BRDF lookup: F0 * scale_lookup + bias_lookup",
+    "Diffuse irradiance: separate prefiltered cubemap (not done here)",
+    "Use roughness\u00b2 instead of roughness for perceptually linear shading"
+  ]
+}

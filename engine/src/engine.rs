@@ -1002,7 +1002,7 @@ fn build_nexus(
         keys.sort(); // детерминизм обхода
         // v0.90.0 SYNAPSE-TRIT: ТОЧНЫЕ проективные веса [N:D] вместо
         // f64-кастов — ранжирование и барьер LENS без погрешности (АЗУ).
-        let mut weighted: Vec<(String, String, String, crate::asm::zero_asm::Proj)> =
+        let mut weighted: Vec<(String, String, String, crate::asm_compat::Proj)> =
             Vec::new();
         let mut seen_rel: HashSet<(String, String, String)> = HashSet::new();
         for key in &keys {
@@ -1022,7 +1022,7 @@ fn build_nexus(
         // произведения — ДЕЛЕНИЯ НЕТ), по убыванию lens-веса; затем top-K.
         // Прежде порядок был порядком обхода (f64 truncate без сортировки).
         weighted.sort_by(|a, b| {
-            crate::asm::zero_asm::cmp_canonical(&b.3, &a.3)
+            crate::asm_compat::cmp_canonical(&b.3, &a.3)
         });
         weighted.truncate(config.max_relations);
         // --- LENS: точный барьер [N:D] + SIMD-компакция микроядром ---
@@ -1032,12 +1032,12 @@ fn build_nexus(
             // дробей (LENS_MIN_W f32 = 13421773·2^-28 — разлагается той же
             // схемой, сравнение БЕЗ деления и без f64→f32 округления)
             let barrier = crate::graph::entity_graph::lens_weight_proj(
-                crate::asm::lens_asm::LENS_MIN_W as f64,
+                crate::asm_compat::LENS_MIN_W as f64,
                 0,
             );
             let survivors: Vec<usize> = (0..n)
                 .filter(|&i| {
-                    crate::asm::zero_asm::cmp_canonical(&weighted[i].3, &barrier)
+                    crate::asm_compat::cmp_canonical(&weighted[i].3, &barrier)
                         == std::cmp::Ordering::Greater
                 })
                 .collect();
@@ -1053,7 +1053,7 @@ fn build_nexus(
             let kept = if lw.is_empty() {
                 0
             } else {
-                crate::asm::lens_asm::filter(&lw, &flags, &mut keep_idx, 0.0, 0, 0)
+                crate::asm_compat::lens_filter(&lw, &flags, &mut keep_idx, 0.0, 0, 0)
             };
             let relations: Vec<(String, String, String)> = keep_idx[..kept]
                 .iter()

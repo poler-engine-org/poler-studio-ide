@@ -270,7 +270,7 @@ impl LiteraryEngine {
     /// `poler_fep_energy` (AVX2+FMA, 8 lanes) — порт fep_loss.rs из
     /// сокровищницы; λ-член остаётся в Rust (разреженный проектор J_c).
     pub fn free_energy(&self) -> f32 {
-        let pred = crate::asm::fep_asm::energy(&self.p, &self.obs, None, 0.0);
+        let pred = crate::asm_compat::fep_energy(&self.p, &self.obs, None, 0.0);
         let logic = self.projector.residual(&self.p);
         pred + self.params.lambda_rl * logic * logic
     }
@@ -281,7 +281,7 @@ impl LiteraryEngine {
     /// (G=I, λ=0 — точный контракт формулы).
     fn grad_f(&self) -> Vec<f32> {
         let mut g = vec![0.0f32; self.params.dims];
-        crate::asm::fep_asm::grad(&self.p, &self.obs, None, 0.0, &mut g);
+        crate::asm_compat::fep_grad(&self.p, &self.obs, None, 0.0, &mut g);
         if self.projector.rank() > 0 {
             let jc_p = self.projector.j_c.matvec(&self.p);
             let mut corr = vec![0.0f32; self.params.dims];
@@ -304,7 +304,7 @@ impl LiteraryEngine {
     /// v0.90 АЗУ: нормировка через div_safe_f32 — полюс x = −1 (знаменатель
     /// ровно 0) насыщает ±MAX вместо NaN-отравления конвейера, 0/0 → 0.
     fn h_psi(f: f32, residual: f32, sigma: f32) -> f32 {
-        let norm = |x: f32| crate::asm::zero_asm::div_safe_f32(x, 1.0 + x);
+        let norm = |x: f32| crate::asm_compat::div_safe_f32(x, 1.0 + x);
         norm(f) + norm(residual) + norm(sigma)
     }
 

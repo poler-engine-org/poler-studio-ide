@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "poler-engine": {
+      "command": "/home/USER/.local/bin/poler-api",
+      "args": ["mcp"],
+      "env": {
+        "PATH": "/home/USER/.local/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    }
+  }
+}

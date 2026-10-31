@@ -50,7 +50,12 @@ use crate::graph::graph_asm::{CompiledMachineGraph, GraphMachineCompiler, ModelC
 use crate::triune::compiler::{PlasticityCompiler, PlasticityConfig, T5qMmapView};
 
 /// Тип виконуваної функції: System V AMD64, `fn(x: *const f32, y: *mut f32)`.
+/// v0.93.0 (fix macOS/aarch64): ABI sysv64 існує лише на x86_64; на інших
+/// архітектурах — еквівалентний "C" (JIT-кодген все одно x86_64-only).
+#[cfg(target_arch = "x86_64")]
 pub type MatvecFn = unsafe extern "sysv64" fn(*const f32, *mut f32);
+#[cfg(not(target_arch = "x86_64"))]
+pub type MatvecFn = unsafe extern "C" fn(*const f32, *mut f32);
 
 /// Розмір сторінки пам'яті (для вирівнювання RWX-регіону).
 fn page_size() -> usize {
@@ -169,7 +174,10 @@ impl ExecutableKernel {
     /// Викликаний код має дотримуватись ABI і не зберігати callee-saved
     /// регістри поза власною рамкою.
     pub unsafe fn call_raw_f64(&self, x: *const f64, y: *mut f64) {
+        #[cfg(target_arch = "x86_64")]
         let f: unsafe extern "sysv64" fn(*const f64, *mut f64) = std::mem::transmute(self.mem.as_ptr());
+        #[cfg(not(target_arch = "x86_64"))]
+        let f: unsafe extern "C" fn(*const f64, *mut f64) = std::mem::transmute(self.mem.as_ptr());
         f(x, y);
     }
 

@@ -1,0 +1,46 @@
+set format simple
+calc let om = exp(2*pi/3*i)
+calc let F3 = (1/sqrt(3)) * [1,1,1; 1,om,om^2; 1,om^2,om]
+calc let e0 = [1; 0; 0]
+calc let e1 = [0; 1; 0]
+calc let e2 = [0; 0; 1]
+calc let A2p = [1,0,0; 0,exp(pi/3*i),0; 0,0,exp(2*pi/3*i)]
+calc let B1p = [1,0,0; 0,exp(pi/6*i),0; 0,0,exp(pi/3*i)]
+calc let B2p = [1,0,0; 0,exp(-pi/6*i),0; 0,0,exp(-pi/3*i)]
+calc let FF = kron(F3, dagger(F3))
+calc let Pc0 = kron(e0,e0)*transpose(kron(e0,e0)) + kron(e1,e1)*transpose(kron(e1,e1)) + kron(e2,e2)*transpose(kron(e2,e2))
+calc let Pcp = kron(e1,e0)*transpose(kron(e1,e0)) + kron(e2,e1)*transpose(kron(e2,e1)) + kron(e0,e2)*transpose(kron(e0,e2))
+calc let Pcm = kron(e2,e0)*transpose(kron(e2,e0)) + kron(e0,e1)*transpose(kron(e0,e1)) + kron(e1,e2)*transpose(kron(e1,e2))
+calc let M11 = kron(eye(3), B1p)
+calc let M12 = kron(eye(3), B2p)
+calc let M21 = kron(A2p, B1p)
+calc let M22 = kron(A2p, B2p)
+calc let gmem = 578/729
+calc let nnm = 2 + gmem^2
+calc let mvm = (1/sqrt(nnm)) * [1;0;0;0;gmem;0;0;0;1]
+calc let s11 = FF * M11 * mvm
+calc let s12 = FF * M12 * mvm
+calc let s21 = FF * M21 * mvm
+calc let s22 = FF * M22 * mvm
+! echo MARK_GMEM
+calc gmem
+! echo MARK_I3_MEM
+calc trace(dagger(s11)*Pc0*s11) + trace(dagger(s21)*Pcm*s21) + trace(dagger(s22)*Pc0*s22) + trace(dagger(s12)*Pc0*s12) - trace(dagger(s11)*Pcm*s11) - trace(dagger(s21)*Pc0*s21) - trace(dagger(s22)*Pcm*s22) - trace(dagger(s12)*Pcp*s12)
+! echo MARK_I3_MEM_LIT
+calc 4*(2*sqrt(3)*gmem + 3)/(3*(2 + gmem^2))
+! echo MARK_I3_ACIN
+calc 1 + sqrt(11/3)
+! echo MARK_I3_BELL
+calc (4/9)*(3+2*sqrt(3))
+calc let DMEM = kron(kron(kron(kron(kron([1,0,0; 0,om,0; 0,0,om^2], [1,0,0; 0,1,0; 0,0,1]), [1,0,0; 0,om^2,0; 0,0,om^4]), [1,0,0; 0,1,0; 0,0,1]), [1,0,0; 0,om^2,0; 0,0,om^4]), [1,0,0; 0,om,0; 0,0,om^2])
+calc let SELDMEM = kron(kron(kron(kron(kron([0;0;1], [1;0;0]), [0;1;0]), [1;0;0]), [0;1;0]), [0;0;1])
+calc let F729 = kron(F3, kron(F3, kron(F3, kron(F3, kron(F3, F3)))))
+calc let flat6 = kron((1/sqrt(3))*[1;1;1], kron((1/sqrt(3))*[1;1;1], kron((1/sqrt(3))*[1;1;1], kron((1/sqrt(3))*[1;1;1], kron((1/sqrt(3))*[1;1;1],(1/sqrt(3))*[1;1;1])))))
+calc let s_mem = F729 * DMEM * flat6
+! echo MARK_BRIDGE_ERR
+calc trace(dagger(s_mem - SELDMEM)*(s_mem - SELDMEM))
+! echo MARK_BRIDGE_P
+calc abs(trace(dagger(SELDMEM)*s_mem))^2
+! echo MARK_GAMMA_FROM_WINDOW
+calc (2/3 + 1/9 + 0/27 + 1/81 + 0/243 + 2/729)
+! echo MARK_DONE

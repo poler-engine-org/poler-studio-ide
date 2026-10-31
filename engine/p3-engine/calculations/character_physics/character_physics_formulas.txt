@@ -1,0 +1,54 @@
+P3 ENGINE — CHARACTER PHYSICS DERIVATIONS
+============================================================
+
+1. CAPSULE vs TRIANGLE DISTANCE
+----------------------------------------
+Given:
+  Capsule axis segment: A → B (A and B are sphere centers at each end)
+  Capsule radius: R
+  Triangle: P0, P1, P2
+
+Distance from a point P on segment to triangle plane:
+  P(t) = A + t*(B - A), t ∈ [0, 1]
+  n = (P1 - P0) × (P2 - P0)
+  n_hat = n / ||n||
+  d(t) = |((P(t) - P0) . n_hat|
+
+Closest point on segment to plane: t* from d|d|²/dt = 0
+  d|d|²/dt = 2 * (P(t) - P0) . n_hat * (B - A) . n_hat
+  => t* = -((A - P0) . n_hat) / ((B - A) . n_hat)
+  Clamp t* to [0, 1]
+
+Contact condition: |d(t*)| <= R
+Barycentric test: project P(t*) onto triangle, check barycentric coords
+
+============================================================
+
+2. STEP-UP SMOOTHING (Hermite Cubic)
+----------------------------------------
+smoothstep(t) = 3t² - 2t³, t ∈ [0, 1]
+  smoothstep(0) = 0, smoothstep(1) = 1
+  smoothstep'(0) = 0, smoothstep'(1) = 0
+  → Zero velocity at boundaries eliminates snap
+
+Step height h = 0.20 m (UE MAX_STEP_SIDE_Z default)
+Step duration T = 0.2 s (gameplay feel)
+Final position: y(t) = y_start + h * smoothstep(t/T)
+
+============================================================
+
+3. BUOYANCY (Archimedes)
+----------------------------------------
+F_buoyancy = ρ_water * g * V_submerged
+  ρ_water = 1000 kg/m³
+  g = 9.81 m/s²
+  V_submerged = V_capsule * submersion_fraction
+  V_capsule = π * R² * (2 * L_half) + (4/3) * π * R³
+    (cylinder + 2 hemispheres)
+
+For 80kg character with R=0.4m, L_half=0.5m:
+  V_capsule = 0.7707 m³
+  F_max_buoyancy = 7560.93 N
+  Weight = 784.80 N
+  Net (submerged) = 6776.13 N upward
+  → Character floats (positive buoyancy)

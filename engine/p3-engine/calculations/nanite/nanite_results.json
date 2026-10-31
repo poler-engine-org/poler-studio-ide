@@ -1,0 +1,26 @@
+{
+  "module": "nanite",
+  "formulas": {
+    "screen_space_error": "\u03b5_screen = \u03c1 \u00d7 r / d  (pixel density \u00d7 cluster radius / distance)",
+    "lod_threshold": "\u03b5_screen > 4 px \u2192 switch to lower-detail cluster",
+    "qem_plane_quadric": "K = (n, d)\u1d40 (n, d)  where plane is n\u00b7v + d = 0",
+    "qem_error": "Error(v') = v'\u1d40 K v', minimize \u2192 K v' = [0,0,0,1]\u1d40",
+    "cluster_size": "128 triangles per cluster (UE Nanite default)",
+    "dag_total_memory": "Total \u2248 2n triangles for n base triangles (geometric series)"
+  },
+  "test_results": {
+    "base_triangles": 1000000,
+    "levels_in_hierarchy": 13,
+    "total_triangles_stored": 1999876,
+    "memory_overhead_percent": 1639142.6229508198,
+    "ratio_vs_base": 16392.426229508197
+  },
+  "implementation_notes": [
+    "Use meshoptimizer (OSS) for meshlet generation + cluster grouping",
+    "Use METIS for k-way partitioning of triangle graph",
+    "QEM simplification: build per-vertex quadrics from face normals",
+    "DAG edges: parent cluster has half the triangles of 2 children combined",
+    "Streaming: only load clusters visible at current \u03b5_screen threshold",
+    "Reference: UE5 Nanite SIGGRAPH 2021 talk, Texturing Mesh Shaders by AMD"
+  ]
+}

@@ -1,0 +1,72 @@
+# Collected OS Files Log
+
+This folder contains documents and archives related to OS development collected from the home directory.
+
+- **backup-poler-os-2026-07-05_21-33.zip** (poler-os) from `/home/vitalij/ZCodeProject/backup-poler-os-2026-07-05_21-33.zip`
+- **disk.img** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/disk.img`
+- **core.img** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/iso-efi/boot/grub/i386-pc/core.img`
+- **eltorito.img** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/iso-efi/boot/grub/i386-pc/eltorito.img`
+- **core.img** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/iso2/boot/grub/i386-pc/core.img`
+- **eltorito.img** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/iso2/boot/grub/i386-pc/eltorito.img`
+- **eltorito.img** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/iso64/boot/grub/i386-pc/eltorito.img`
+- **poler-os-debug.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os-debug.iso`
+- **poler-os-dual.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os-dual.iso`
+- **poler-os-efi.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os-efi.iso`
+- **poler-os-manual.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os-manual.iso`
+- **poler-os-minimal.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os-minimal.iso`
+- **poler-os-syslinux.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os-syslinux.iso`
+- **poler-os.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os.iso`
+- **poler-os64.iso** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-backup/poler-os/zig-kernel/poler-os64.iso`
+- **poler-os-docs-and-sources.zip** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-docs-and-sources.zip`
+- **ARCHITECTURE.md** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-docs/poler-os/docs/ARCHITECTURE.md`
+- **PHASE1-PLAN.md** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-docs/poler-os/docs/PHASE1-PLAN.md`
+- **DRAFTS-ANALYSIS.md** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-docs/poler-os/drafts/DRAFTS-ANALYSIS.md`
+- **poler-os-work.tar.gz** (poler-os) from `/home/vitalij/ZCodeProject/poler-os-work.tar.gz`
+- **super-z-v2.1.1-Linux-Windows (1).zip** (general) from `/home/vitalij/ZCodeProject/super-z-v2.1.1-Linux-Windows (1).zip`
+- **CachyOS Kernel.md** (cachyos) from `/home/vitalij/Завантажене/ппппп/POLER_ The Cognitive Architecture of Semantic Resonance/CachyOS Kernel.md`
+- **Optimizing a Rust GPU matmul kernel.md** (poler-os) from `/home/vitalij/Завантажене/ппппп/POLER_ The Cognitive Architecture of Semantic Resonance/Optimizing a Rust GPU matmul kernel.md`
+- **Розширене ядро субквантового мосту.md** (poler-os) from `/home/vitalij/Завантажене/ппппп/POLER_ The Cognitive Architecture of Semantic Resonance/Розширене ядро субквантового мосту.md`
+- **poler-eri-v3.0.1-linux-x86_64.zip** (poler-os) from `/home/vitalij/Завантажене/ппппп/Нова тека (4)/poler-eri-v3.0.1-linux-x86_64.zip`
+- **poler-os-work.tar.gz** (poler-os) from `/home/vitalij/Картинки/Нова тека (2)/poler-os-work.tar.gz`
+- **TEMPLEOS_ANALYSIS.md** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/TEMPLEOS_ANALYSIS.md`
+- **efi.img** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/efi.img`
+- **efi.img** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/output/boot/efi.img`
+- **vitalij-os.iso** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/vitalij-os.iso`
+- **README.md** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/zig-linux-x86_64-0.13.0/README.md`
+- **LICENSE.TXT** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/zig-linux-x86_64-0.13.0/lib/libcxx/LICENSE.TXT`
+- **LICENSE.TXT** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/zig-linux-x86_64-0.13.0/lib/libcxxabi/LICENSE.TXT`
+- **LICENSE.TXT** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/zig-linux-x86_64-0.13.0/lib/libunwind/LICENSE.TXT`
+- **zig.tar.xz** (vitalij-os) from `/home/vitalij/Стільниця/vitalij-os/zig.tar.xz`
+- **POLER-OS-PLAN-v0.5-to-v0.6.md** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/POLER-OS-PLAN-v0.5-to-v0.6.md`
+- **backup-poler-os-2026-07-05_21-33 (1).zip** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/backup-poler-os-2026-07-05_21-33 (1).zip`
+- **poler-os-boot (1).iso** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-boot (1).iso`
+- **poler-os-boot.iso** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-boot.iso`
+- **poler-os-docs-and-sources (1).zip** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-docs-and-sources (1).zip`
+- **poler-os-source.zip** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-source.zip`
+- **poler-os-v0.4.0-source.zip** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-v0.4.0-source.zip`
+- **poler-os-v0.4.0.iso** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-v0.4.0.iso`
+- **poler-os-v0.5.0-source.zip** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-v0.5.0-source.zip`
+- **poler-os-v0.5.0-uefi-gop.iso** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-v0.5.0-uefi-gop.iso`
+- **poler-os-v0.5.0.iso** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/poler-os-v0.5.0.iso`
+- **super-z-v1.3.0-Linux-Windows.zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/super-z-v1.3.0-Linux-Windows.zip`
+- **super-z-v2.0.1-Linux-Windows (1).zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/super-z-v2.0.1-Linux-Windows (1).zip`
+- **super-z-v2.0.1-Linux-Windows.zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/super-z-v2.0.1-Linux-Windows.zip`
+- **super-z-v2.0.2-Linux-Windows.zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/super-z-v2.0.2-Linux-Windows.zip`
+- **super-z-v2.1.0-Linux-Windows.zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/super-z-v2.1.0-Linux-Windows.zip`
+- **super-z-v2.1.1-Linux-Windows.zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/super-z-v2.1.1-Linux-Windows.zip`
+- **vitalij-os (1).iso** (vitalij-os) from `/home/vitalij/Стільниця/Нова тека (4)/vitalij-os (1).iso`
+- **vitalij-os (2).iso** (vitalij-os) from `/home/vitalij/Стільниця/Нова тека (4)/vitalij-os (2).iso`
+- **vitalij-os-code.zip** (vitalij-os) from `/home/vitalij/Стільниця/Нова тека (4)/vitalij-os-code.zip`
+- **vitalij-os.img** (vitalij-os) from `/home/vitalij/Стільниця/Нова тека (4)/vitalij-os.img`
+- **vitalij-os.iso** (vitalij-os) from `/home/vitalij/Стільниця/Нова тека (4)/vitalij-os.iso`
+- **cachyos-desktop-linux-260426.iso** (cachyos) from `/home/vitalij/Стільниця/Нова тека (5)/cachyos-desktop-linux-260426.iso`
+
+- **drivers_backup.tar.gz** (drivers) from `/home/vitalij/drivers_backup.tar.gz`
+- **xorriso-local.tar.gz** (general) from `/home/vitalij/xorriso-local.tar.gz`
+- **xorriso-1.5.6.tar.gz** (general) from `/home/vitalij/xorriso-1.5.6.tar.gz`
+- **xorriso-1.5.6-local.zip** (general) from `/home/vitalij/Стільниця/Нова тека (4)/xorriso-1.5.6-local.zip`
+- **Crypto_Tools_Catalog_Linux.pdf** (general) from `/home/vitalij/Стільниця/Нова тека (4)/Crypto_Tools_Catalog_Linux.pdf`
+- **crypto_tools_linux_catalog.pdf** (general) from `/home/vitalij/Стільниця/Нова тека (4)/crypto_tools_linux_catalog.pdf`
+- **Replacing Ad-Hoc Scripts with a Rigorous Cryptanalysis Framework_ A Professional Toolkit for POLER Core v4 on Debian 13.pdf** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/Replacing Ad-Hoc Scripts with a Rigorous Cryptanalysis Framework_ A Professional Toolkit for POLER Core v4 on Debian 13.pdf`
+- **POLER_Research_Document.pdf** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/POLER_Research_Document.pdf`
+- **POLER_Tensor_Algebra_Complete.docx** (poler-os) from `/home/vitalij/Стільниця/Нова тека (4)/POLER_Tensor_Algebra_Complete.docx`

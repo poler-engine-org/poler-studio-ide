@@ -1,0 +1,24 @@
+P3 ENGINE — PARTICLE SYSTEM DERIVATIONS
+============================================================
+
+1. CUBIC BEZIER LIFE CURVE
+----------------------------------------
+B(t) = (1-t)³ P0 + 3(1-t)² t P1 + 3(1-t) t² P2 + t³ P3, t ∈ [0,1]
+  Used for: intensity, size, color over particle lifetime
+  Per-emitter: 4 control points × 3 properties = 12 floats
+
+2. CURL NOISE (turbulence)
+----------------------------------------
+curl(z) = (∂P/∂y, -∂P/∂x, 0)  where P is Perlin noise potential
+  Provides divergence-free (volume-preserving) velocity field
+  Used for: smoke, dust, fog particles
+
+3. GRAVITY INTEGRATION
+----------------------------------------
+Semi-implicit Euler:
+  v' = v + a*dt;  p' = p + v'*dt
+  Fast, symplectic for short simulations, OK for sparks
+
+Verlet:
+  p_new = 2*p - p_prev + a*dt²
+  Energy-conserving, better for long simulations (cloth, hair)

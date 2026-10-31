@@ -510,14 +510,19 @@ impl StreamCrystalBuilder {
     /// Возвращает число прочитанных файлов.
     pub fn feed_dir<P: AsRef<Path>>(&mut self, dir: P) -> std::io::Result<usize> {
         let mut count = 0usize;
-        let entries = std::fs::read_dir(dir.as_ref())?;
+        let entries = match std::fs::read_dir(dir.as_ref()) {
+            Ok(e) => e,
+            Err(_) => return Ok(0), // Пропускаем папки без прав доступа
+        };
         let mut paths: Vec<std::path::PathBuf> =
             entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
         // детерминизм обхода: сортировка имён (платформо-независимая)
         paths.sort();
         for path in paths {
             if path.is_dir() {
-                count += self.feed_dir(&path)?;
+                if let Ok(sub_count) = self.feed_dir(&path) {
+                    count += sub_count;
+                }
             } else if let Some(ext) =
                 path.extension().and_then(|e| e.to_str()).map(|e| e.to_lowercase())
             {

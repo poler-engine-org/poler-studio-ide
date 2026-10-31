@@ -950,8 +950,8 @@ mod tests {
 ///
 /// Диапазон точности: |value| ∈ [2⁻⁶², 2⁶²] — весь реальный диапазон
 /// семантических весов; за пределами — насыщение (документировано).
-pub fn lens_weight_proj(w: f64, depth: usize) -> crate::asm::zero_asm::Proj {
-    use crate::asm::zero_asm::Proj;
+pub fn lens_weight_proj(w: f64, depth: usize) -> crate::asm_compat::Proj {
+    use crate::asm_compat::Proj;
     if w == 0.0 || !w.is_finite() {
         return Proj::ZERO;
     }
@@ -1012,8 +1012,8 @@ impl EntityGraph {
         k: usize,
         temporal_filter: Option<&str>,
         max_relations: usize,
-    ) -> Vec<(String, String, String, crate::asm::zero_asm::Proj)> {
-        use crate::asm::zero_asm::Proj;
+    ) -> Vec<(String, String, String, crate::asm_compat::Proj)> {
+        use crate::asm_compat::Proj;
         let mut out: Vec<(String, String, String, Proj)> = Vec::new();
         let start = match self.policy {
             IdentityPolicy::Text => match self.find_node(entity) {
@@ -1077,7 +1077,7 @@ impl EntityGraph {
 #[cfg(test)]
 mod lens_proj_tests {
     use super::lens_weight_proj;
-    use crate::asm::zero_asm::{cmp_canonical, Proj};
+    use crate::asm_compat::{cmp_canonical, Proj};
 
     #[test]
     fn lens_proj_dyadic_exactness() {

@@ -1,0 +1,8 @@
+target/
+.git/
+upstream/
+bench_corpus/
+*.tar.gz
+*.tar.xz
+Dockerfile
+.dockerignore

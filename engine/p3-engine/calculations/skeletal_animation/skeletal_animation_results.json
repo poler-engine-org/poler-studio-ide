@@ -1,0 +1,49 @@
+{
+  "module": "skeletal_animation",
+  "formulas": {
+    "LBS": "v' = \u03a3(w_i * M_i) * v  \u2014 linear blend of bone matrices",
+    "DQS": "v' = (\u03a3 w_i * dq_i) normalized, then apply \u2014 preserves rotation arcs",
+    "FABRIK": "Iterative forward+backward reaching, each pass preserves bone lengths",
+    "SLERP": "q(t) = (q_A * sin((1-t)*\u03b8/2) + q_B * sin(t*\u03b8/2)) / sin(\u03b8/2)"
+  },
+  "lbs_dqs_test": {
+    "vertex": [
+      1.0,
+      0.5,
+      0.0
+    ],
+    "bone_A_transform": "identity",
+    "bone_B_transform": "180\u00b0 rotation around Y, offset (0,1,0)",
+    "LBS_result": [
+      0.0,
+      1.0,
+      -6.123233995736766e-17
+    ],
+    "DQS_result": [
+      0.0,
+      1.0,
+      -1.0000000000000002
+    ],
+    "LBS_artifact": "vertex collapses to axis (X=0) \u2014 candy wrapper",
+    "DQS_correctness": "vertex rotates through Z \u2014 preserves volume"
+  },
+  "fabrik_test": {
+    "chain": [
+      3,
+      "bones, each length 1.0"
+    ],
+    "target": [
+      2.5,
+      0.5,
+      0.0
+    ],
+    "iterations_to_converge": 20,
+    "tolerance": 0.0001
+  },
+  "implementation_notes": [
+    "Use DQS for character limbs (arms, legs) \u2014 no twist artifacts",
+    "Use LBS for facial blendshapes (faster, no rotation arc needed)",
+    "FABRIK: ~5-10 iterations for 3-bone chain, ~20 for 10-bone",
+    "Dual quaternion: w+x*i+y*j+z*k + w'+x'*i+y'*j+z'*k (8 floats)"
+  ]
+}

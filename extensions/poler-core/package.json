@@ -4,7 +4,7 @@
   "description": "Суверенное ядро POLER[Ψ]: Causal Nexus, AIDDE Impact, Топографический поиск, Научная Студия и связка с poler-engine",
   "version": "1.0.0",
   "publisher": "poler-engine",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.md",
   "engines": {
     "vscode": "^1.90.0"
   },

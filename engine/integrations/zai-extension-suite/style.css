@@ -1,0 +1,11 @@
+/* Z.ai Ultimate Suite: Wide Screen & UI Enhancements */
+main, [class*="chat-container"], [class*="message-list"], .prose {
+    max-width: 95% !important;
+    width: 95% !important;
+}
+
+#zai-export-btn:hover {
+    background: #1d4ed8 !important;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}

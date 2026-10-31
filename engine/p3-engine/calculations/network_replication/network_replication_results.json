@@ -1,0 +1,39 @@
+{
+  "module": "network_replication",
+  "formulas": {
+    "fixed_point_Q32_32": "x = (int32_t)(value * 2^32); precision = 1/2^32 \u2248 2.3e-10",
+    "delta_compression": "send only fields where |new - prev| > threshold; bitmask selects changed fields",
+    "ggpo_rollback": "client predicts K frames ahead, re-simulates W frames when server correction arrives",
+    "snapshot_size": "sizeof(state) \u2014 minimize via field-level encoding"
+  },
+  "test_results": {
+    "fixed_point_precision": {
+      "Q16_16": 1.52587890625e-05,
+      "Q24_8": 0.00390625,
+      "Q32_32": 2.3283064365386963e-10,
+      "float32_epsilon": 1.19e-07,
+      "recommendation": "Use Q32.32 for physics determinism (better than float32 precision)"
+    },
+    "delta_compression_test": {
+      "frames": 1000,
+      "fields_per_frame": 10,
+      "change_rate_percent": 10.27027027027027,
+      "naive_bytes": 40000,
+      "delta_bytes": 6104,
+      "compression_ratio": 6.553079947575361
+    },
+    "ggpo_rollback": {
+      "input_delay_frames": 2,
+      "rollback_window_frames": 7,
+      "re_simulation_time_ms_at_60fps": 116.66666666666667
+    }
+  },
+  "implementation_notes": [
+    "Fixed-point math: replace f32 with Q32.32 in physics core",
+    "Snapshot delta: serialize state diff per frame, send over UDP",
+    "Bitmask: 2 bytes per frame = 16 fields max per snapshot",
+    "GGPO: simulate client + server side-by-side for K frames ahead",
+    "Re-simulation: store input buffer of size W, replay on correction",
+    "Smoothing: snap to corrected state over 100ms to hide jitter"
+  ]
+}

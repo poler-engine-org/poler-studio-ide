@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 249" font-family="monospace">
+<rect width="640" height="249" fill="#ffffff"/>
+<text x="320" y="22" font-size="14.0" font-weight="bold" fill="#111827" text-anchor="middle">Born: вероятности исходов</text>
+<line x1="60" y1="180" x2="600" y2="180" stroke="#d1d5db"/>
+<rect x="201.0" y="62.0" width="78.0" height="118.0" fill="#2563eb"/>
+<text x="240.0" y="54.0" font-size="10" font-weight="bold" fill="#2563eb" text-anchor="middle">80.83%</text>
+<text x="240.0" y="196" font-size="10" fill="#6b7280" text-anchor="middle">p0</text>
+<rect x="287.0" y="168.4" width="78.0" height="11.6" fill="#93c5fd"/>
+<text x="326.0" y="160.4" font-size="10" fill="#6b7280" text-anchor="middle">7.96%</text>
+<text x="326.0" y="196" font-size="10" fill="#6b7280" text-anchor="middle">p1</text>
+<rect x="373.0" y="163.6" width="78.0" height="16.4" fill="#93c5fd"/>
+<text x="412.0" y="155.6" font-size="10" fill="#6b7280" text-anchor="middle">11.21%</text>
+<text x="412.0" y="196" font-size="10" fill="#6b7280" text-anchor="middle">p2</text>
+<text x="60" y="222.0" font-size="12" fill="#111827">Σ = 1 · максимум p0 = 0.8083 · Born-коллапс: один исход станет реальностью</text>
+</svg>

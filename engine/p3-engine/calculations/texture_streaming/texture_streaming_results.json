@@ -1,0 +1,21 @@
+{
+  "module": "texture_streaming",
+  "formulas": {
+    "mipmap_level": "\u03bb = log2(max(|\u2202u/\u2202x|, |\u2202v/\u2202x|, |\u2202u/\u2202y|, |\u2202v/\u2202y|) \u00d7 W_tex)",
+    "total_mipmap_size": "Total = W \u00d7 H \u00d7 (1 + 1/4 + 1/16 + ...) = (4/3) \u00d7 W \u00d7 H",
+    "anisotropic_sampling": "N lines along long axis, each at min(\u03bb_long, \u03bb_short + log2(aniso))"
+  },
+  "test_results": {
+    "1024_squared_rgba8_mipmap_bytes": 5592405,
+    "1024_squared_bc7_mipmap_bytes": 699050,
+    "1024_squared_astc_4x4_bytes": 1398101,
+    "compression_ratio_vs_uncompressed": "8x (BC7), 4x (ASTC 4x4), 9x (ASTC 6x6)"
+  },
+  "implementation_notes": [
+    "Precompute mipmap chain at texture load time",
+    "Per-pixel: compute partial derivatives \u2202u/\u2202x etc. from neighbor UVs",
+    "Select mipmap level \u03bb, clamp to [0, max_level]",
+    "Trilinear: blend adjacent mip levels for smooth transitions",
+    "Anisotropic: sample multiple texels along footprint ellipse"
+  ]
+}

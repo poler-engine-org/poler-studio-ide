@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Z.ai Ultimate Suite (POLER Edition)",
+  "version": "1.0.0",
+  "description": "Полный набор улучшений для chat.z.ai: широкий экран, экспорт в Markdown, снятие лимитов вставки и умные заголовки вкладок.",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://chat.z.ai/*", "https://*.z.ai/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://chat.z.ai/*", "https://*.z.ai/*"],
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "run_at": "document_end"
+    }
+  ]
+}

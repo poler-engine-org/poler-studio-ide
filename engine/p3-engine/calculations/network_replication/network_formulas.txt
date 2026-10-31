@@ -1,0 +1,38 @@
+P3 ENGINE — NETWORK REPLICATION DERIVATIONS
+============================================================
+
+1. FIXED-POINT MATH (deterministic physics)
+----------------------------------------
+Floating point math is non-deterministic across CPUs
+(FMA, fused ops, rounding mode differences).
+
+Fixed-point: store value × 2^F as integer (F fractional bits):
+  Q16.16: 32-bit total, 16 frac bits → precision = 1/65536 ≈ 1.5e-5
+  Q32.32: 64-bit total, 32 frac bits → precision ≈ 2.3e-10
+
+  Recommendation: Q32.32 for physics (better than float32 epsilon 1.19e-7)
+
+2. DELTA COMPRESSION (snapshot diff)
+----------------------------------------
+Each frame: state = N fields (positions, velocities, etc.)
+Naive: send N * sizeof(f32) bytes per frame
+
+Delta: only send fields where |new - prev| > threshold
+  Bitmask: 2 bytes (16 fields) selects changed fields
+  Per-field: 4 bytes if changed, 0 if not
+
+  Compression ratio = 1 / change_rate
+  Typical: 10x compression at 10% change rate
+
+3. GGPO ROLLBACK (client-side prediction)
+----------------------------------------
+Client predicts K frames ahead (K=2 typical):
+  Buffer: last W=7 frames of input + state
+  Display: show predicted frame K+1 (client is ahead by K)
+
+On server correction (frame n confirmed):
+  If state[n] matches predicted: no action
+  If mismatch: rollback to frame n, re-simulate n → n+W
+  Cost: W * physics_step_time (e.g., 7 * 0.016 = 112ms re-sim)
+
+  Smoothing: snap-to-corrected over 100ms to hide visual jitter

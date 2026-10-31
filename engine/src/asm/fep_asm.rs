@@ -257,6 +257,14 @@ extern "sysv64" {
 }
 
 /// Готовность AVX2+FMA (детекция в [`crate::asm::caps`]).
+// v0.93.0: скалярные эталоны energy/grad/step живут в crate::asm_compat
+// (архитектурная независимость); пути сохранены реэкспортами.
+pub use crate::asm_compat::{
+    fep_energy_scalar as energy_scalar,
+    fep_grad_scalar as grad_scalar,
+    fep_step_scalar as step_scalar,
+};
+
 #[inline]
 fn ready() -> bool {
     let c = crate::asm::caps();
@@ -351,49 +359,10 @@ pub fn step(
 // ------------------------- скалярные эталоны -------------------------
 
 /// Скалярный эталон энергии (тот же математический контракт).
-pub fn energy_scalar(p: &[f32], o: &[f32], gw: Option<&[f32]>, lambda: f32) -> f32 {
-    let mut f = 0.0f32;
-    for i in 0..p.len().min(o.len()) {
-        let r = p[i] - o[i];
-        let w = gw.map_or(1.0f32, |g| g.get(i).copied().unwrap_or(1.0));
-        f += w * r * r + 0.5 * lambda * p[i] * p[i];
-    }
-    f
-}
 
 /// Скалярный эталон градиента.
-pub fn grad_scalar(
-    p: &[f32],
-    o: &[f32],
-    gw: Option<&[f32]>,
-    lambda: f32,
-    grad_out: &mut [f32],
-) {
-    for i in 0..p.len().min(o.len()).min(grad_out.len()) {
-        let r = p[i] - o[i];
-        let w = gw.map_or(1.0f32, |g| g.get(i).copied().unwrap_or(1.0));
-        grad_out[i] = 2.0 * w * r + lambda * p[i];
-    }
-}
 
 /// Скалярный эталон полного шага.
-pub fn step_scalar(
-    p: &mut [f32],
-    o: &[f32],
-    gw: &[f32],
-    grad_out: &mut [f32],
-    lambda: f32,
-    eta: f32,
-) -> f32 {
-    let mut f = 0.0f32;
-    for i in 0..p.len().min(o.len()).min(gw.len()).min(grad_out.len()) {
-        let r = p[i] - o[i];
-        f += gw[i] * r * r + 0.5 * lambda * p[i] * p[i];
-        grad_out[i] = 2.0 * gw[i] * r + lambda * p[i];
-        p[i] -= eta * grad_out[i];
-    }
-    f
-}
 
 // ------------------------------ тесты ------------------------------
 

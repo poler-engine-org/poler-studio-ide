@@ -1,0 +1,33 @@
+P3 ENGINE — PBR MATERIALS DERIVATIONS (Cook-Torrance)
+============================================================
+
+BRDF (Bidirectional Reflectance Distribution Function):
+  f_r(L, V) = k_D * (albedo/π) + k_S * (D * G * F) / (4 * (N·V) * (N·L))
+
+Where:
+  k_D = diffuse weight = 1 - F (energy conservation)
+  k_S = specular weight = F (Fresnel)
+  N = surface normal
+  V = view direction (camera → surface)
+  L = light direction (surface → light)
+  H = half vector = normalize(L + V)
+
+1. GGX/Trowbridge-Reitz NDF:
+   D_GGX(N, H, α) = α² / (π * ((N·H)² * (α² - 1) + 1)²)
+   α = roughness² (perceptual linear)
+
+2. Smith Geometry (separable, GGX-matched):
+   G_Smith(N, V, L, α) = G1(N·V, α) * G1(N·L, α)
+   G1(N·X, α) = 2 * (N·X) / ((N·X) + sqrt(α² + (1 - α²) * (N·X)²))
+
+3. Fresnel Schlick:
+   F_Schlick(V, H, F0) = F0 + (1 - F0) * (1 - V·H)⁵
+   F0 = ((n-1)/(n+1))² for dielectrics (typical 0.02-0.05)
+   F0 = RGB tint for metals (e.g., gold = (1.0, 0.71, 0.29))
+
+4. IBL Precomputation:
+   For each (NdotV, roughness) in 256×256 LUT:
+     Importance-sample GGX (Hammersley sequence, 512 samples)
+     Accumulate F * G * VdotH / (4 * NdotV * NdotL)
+     Decompose into (scale, bias) such that F0_resolved = F0 * scale + bias
+   Result: brdf_lut.bin (256KB scale + 256KB bias, raw f32)

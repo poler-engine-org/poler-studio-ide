@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Id": "polerengineplugin",
+        "Name": "POLER Engine",
+        "Name[ru]": "Движок POLER",
+        "Name[uk]": "Рушій POLER",
+        "Description": "Sovereign search, memory crystal, motor bridge and disk harvester inside Kate",
+        "Description[ru]": "Суверенный поиск, кристалл памяти, моторный мост и дисковый сборщик внутри Kate",
+        "Description[uk]": "Суверенний пошук, кристал пам'яті, моторний міст та дисковий збирач усередині Kate",
+        "Version": "0.1.0",
+        "License": "LGPL-2.0-or-later",
+        "Category": "Editor",
+        "Authors": [
+            {
+                "Name": "POLER Engine Org",
+                "Email": "vitalijkotok18@gmail.com"
+            }
+        ]
+    }
+}

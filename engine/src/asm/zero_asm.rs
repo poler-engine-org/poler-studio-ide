@@ -69,28 +69,17 @@
 
 use std::arch::global_asm;
 
-/// Код все-⊙ байта pack5: (3⁵−1)/2 = 121 — единственная кодировка
-/// троичного нуля в 5-тритном байте (Калькулятор Всего).
-pub const TRIT5_ZERO_CODE: u8 = 121;
+// v0.93.0: чисто-Rust ядро [N:D] перенесено в crate::asm_compat
+// (архитектурная независимость — macos/aarch64 CI). Пути вида
+// `crate::asm::zero_asm::*` на x86_64 сохранены реэкспортами.
+pub use crate::asm_compat::{
+    Proj, ProjClass, TRIT5_ZERO_CODE, TRITS_PER_U64, TRIT_U64_RADIUS,
+    POLE_I64_POS, POLE_I64_NEG, Q30_ULP_F64, gcd64,
+    cmp_canonical, cmp_canonical_scalar, div_safe_i32, div_safe_i32_scalar,
+    div_safe_f32, qutrit3, qutrit3_scalar, classify_scalar,
+    proj_mul_scalar, proj_div_scalar, trit_zero_count_scalar,
+};
 
-/// Троичный радиус u64: 40 тритов = 8 pack5-байтов.
-pub const TRITS_PER_U64: usize = 40;
-
-/// (3⁴⁰−1)/2 = 6078832729528464400 < 2⁶³ — сбалансированный диапазон
-/// 40 тритов влезает в i64 БЕЗ переполнения; |MIN| = |MAX| ТОЧНО
-/// (Калькулятор Всего; контраст: 2⁶³ − (2⁶³−1) = 1 у дополнения до двух).
-pub const TRIT_U64_RADIUS: i64 = 6078832729528464400;
-
-/// Симметричный положительный полюс насыщения i64.
-pub const POLE_I64_POS: i64 = i64::MAX;
-
-/// Симметричный отрицательный полюс насыщения i64: −(2⁶³−1) — НЕ MIN,
-/// чтобы полюс сам не был точкой-изгоем негации.
-pub const POLE_I64_NEG: i64 = -i64::MAX;
-
-/// ULP Q30 — шаг решётки CORDIC-ротора (Калькулятор Всего:
-/// 2⁻³⁰ = 9.313225746154785e-10). Радиус изоляции машинного нуля.
-pub const Q30_ULP_F64: f64 = 9.313225746154785e-10;
 
 global_asm! {
     r#"
@@ -324,193 +313,9 @@ poler_az_qutrit3:
 }
 
 extern "sysv64" {
-    fn poler_az_class(n: i64, d: i64) -> u64;
-    fn poler_az_inv(n: i64, d: i64, out: *mut i64);
-    fn poler_az_proj_mul(n1: i64, d1: i64, n2: i64, d2: i64, out: *mut i64);
-    fn poler_az_proj_div(n1: i64, d1: i64, n2: i64, d2: i64, out: *mut i64);
-    fn poler_az_cmp(n1: i64, d1: i64, n2: i64, d2: i64) -> i64;
-    fn poler_az_div_safe_i32(num: i32, den: i32) -> i32;
     fn poler_az_trit_zero_count(packed: *const u8, n: usize) -> usize;
-    fn poler_az_qutrit3(n: i64, d: i64, out: *mut i64);
 }
 
-/// Класс точки [N:D] на проективной прямой ℝP¹.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ProjClass {
-    /// Обыкновенная дробь N/D, D≠0, N≠0.
-    Finite = 0,
-    /// [0:D≠0] — южный полюс: истинный абсолютный ноль (изолирован,
-    /// уникален, центр симметрии решётки).
-    Zero = 1,
-    /// [N≠0:0] — северный полюс: ∞. Проективно [1:0]≡[−1:0] — ОДНА точка
-    /// (λ-инвариант однородных координат замыкает +∞ и −∞).
-    Pole = 2,
-    /// [0:0] — калибровочная неопределённость: единственный запрещённый
-    /// класс, детектируется ОДНИМ тестом вместо NaN-отравления.
-    Gauge = 3,
-}
-
-impl ProjClass {
-    fn from_code(code: u64) -> Self {
-        match code {
-            1 => ProjClass::Zero,
-            2 => ProjClass::Pole,
-            3 => ProjClass::Gauge,
-            _ => ProjClass::Finite,
-        }
-    }
-}
-
-/// Проективная дробь [N:D]: значение N/D; D=0 — полюс (∞), не сбой;
-/// [0:0] — калибровка. Деления НЕТ: умножения и обмены.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Proj {
-    pub n: i64,
-    pub d: i64,
-}
-
-impl Proj {
-    /// Абсолютный ноль [0:1] — южный полюс ℝP¹.
-    pub const ZERO: Proj = Proj { n: 0, d: 1 };
-    /// Единица [1:1].
-    pub const ONE: Proj = Proj { n: 1, d: 1 };
-    /// Полюс [1:0] = ∞ (≡ [−1:0] — одна проективная точка).
-    pub const INF: Proj = Proj { n: 1, d: 0 };
-    /// Калибровочная неопределённость [0:0] — единственный запрещённый класс.
-    pub const GAUGE: Proj = Proj { n: 0, d: 0 };
-
-    /// Целое как дробь [v:1].
-    pub fn from_int(v: i64) -> Self {
-        Proj { n: v, d: 1 }
-    }
-
-    /// Класс точки: asm-ядро (sete+lea, без веток).
-    pub fn classify(&self) -> ProjClass {
-        ProjClass::from_code(unsafe { poler_az_class(self.n, self.d) })
-    }
-
-    /// Инверсия = ОБМЕН [D:N]: нуль ↔ полюс зеркальны; 1/x без деления.
-    pub fn inv(&self) -> Self {
-        let mut out = [0i64; 2];
-        unsafe { poler_az_inv(self.n, self.d, out.as_mut_ptr()) };
-        Proj { n: out[0], d: out[1] }
-    }
-
-    /// Умножение [N1·N2 : D1·D2]; переполнение — насыщение в полюс
-    /// со знаком значения (asm-ядро).
-    pub fn mul(&self, o: &Proj) -> Proj {
-        let mut out = [0i64; 2];
-        unsafe { poler_az_proj_mul(self.n, self.d, o.n, o.d, out.as_mut_ptr()) };
-        Proj { n: out[0], d: out[1] }
-    }
-
-    /// ДЕЛЕНИЕ БЕЗ ДЕЛЕНИЯ: a/b = [N1·D2 : D1·N2] перекрёстным
-    /// умножением (asm-ядро). b=0 → полюс (∞), 0/0 → калибровка [0:0],
-    /// x/∞ → нуль, ∞/x → полюс — «деление на ноль» перестаёт быть
-    /// событием: это координата на ℝP¹, а не исключение.
-    pub fn div(&self, o: &Proj) -> Proj {
-        let mut out = [0i64; 2];
-        unsafe { poler_az_proj_div(self.n, self.d, o.n, o.d, out.as_mut_ptr()) };
-        Proj { n: out[0], d: out[1] }
-    }
-
-    /// Аддитивная негация [−N:D] — тотальна на троично-симметричной
-    /// решётке (контраст: i64::MIN ломает её в дополнении до двух).
-    pub fn neg(&self) -> Self {
-        Proj { n: self.n.wrapping_neg(), d: self.d }
-    }
-
-    /// Сложение [N1·D2+N2·D1 : D1·D2] в i128-промежуточных — ТОЧНО
-    /// (1/2+1/3 = [5:6] без всяких 0.833…4). Переполнение i64 — насыщение:
-    /// |числитель|>|знаменатель| → полюс знака, иначе нуль.
-    pub fn add(&self, o: &Proj) -> Proj {
-        let n = self.n as i128 * o.d as i128 + o.n as i128 * self.d as i128;
-        let d = self.d as i128 * o.d as i128;
-        let fits = |v: i128| v >= i64::MIN as i128 && v <= i64::MAX as i128;
-        if fits(n) && fits(d) {
-            return Proj { n: n as i64, d: d as i64 };
-        }
-        // насыщение по величине: полюс знака либо нуль
-        let sign = (n < 0) != (d < 0);
-        if n.unsigned_abs() > d.unsigned_abs() {
-            Proj { n: if sign { POLE_I64_NEG } else { POLE_I64_POS }, d: 0 }
-        } else {
-            Proj::ZERO
-        }
-    }
-
-    /// Каноническая форма: НОД-редукция (бинарный gcd) + знаменатель > 0.
-    /// [−1:0] → [1:0]: плюс- и минус-полюс — ОДНА проективная точка.
-    pub fn canonicalize(&self) -> Proj {
-        match self.classify() {
-            ProjClass::Gauge => Proj::GAUGE,
-            ProjClass::Zero => Proj::ZERO,
-            ProjClass::Pole => Proj { n: 1, d: 0 },
-            ProjClass::Finite => {
-                let mut n = self.n;
-                let mut d = self.d;
-                if d < 0 {
-                    n = -n;
-                    d = -d;
-                }
-                let g = gcd64(n.unsigned_abs(), d.unsigned_abs()) as i64;
-                if g > 1 {
-                    n /= g;
-                    d /= g;
-                }
-                Proj { n, d }
-            }
-        }
-    }
-
-    /// Приближённое значение (только для отображения — не для сравнений!).
-    pub fn value_f64(&self) -> f64 {
-        self.n as f64 / self.d as f64
-    }
-}
-
-/// Бинарный НОД (без деления — сдвиги и вычитания; «ноль Python»-стиль
-/// железа). gcd(12,18)=6 — сверено с Калькулятором Всего.
-fn gcd64(mut a: u64, mut b: u64) -> u64 {
-    if a == 0 {
-        return b;
-    }
-    if b == 0 {
-        return a;
-    }
-    let za = a.trailing_zeros();
-    let zb = b.trailing_zeros();
-    a >>= za;
-    b >>= zb;
-    // общая двойная степень: минимум валиций, фиксируется ОДИН раз;
-    // нули, стрипаемые в цикле из b, НЕ входят в НОД (a нечётно)
-    let shift = za.min(zb);
-    loop {
-        if a > b {
-            std::mem::swap(&mut a, &mut b);
-        }
-        b -= a;
-        if b == 0 {
-            return a << shift;
-        }
-        b >>= b.trailing_zeros();
-    }
-}
-
-/// ТОЧНОЕ сравнение канонических дробей (d1>0, d2>0): 128-битные
-/// произведения N1·D2 vs N2·D1 — БЕЗ деления. asm-ядро.
-pub fn cmp_canonical(a: &Proj, b: &Proj) -> std::cmp::Ordering {
-    debug_assert!(a.d > 0 && b.d > 0, "контракт канонической формы: знаменатель > 0");
-    let r = unsafe { poler_az_cmp(a.n, a.d, b.n, b.d) };
-    r.cmp(&0)
-}
-
-/// Безопасное деление i32 (Q-домен): НИКОГДА не поднимает #DE.
-/// den==0 → симметричный полюс ±(2³¹−1) по знаку числителя; 0/0 → 0;
-/// MIN/−1 → +MAX (асимметрия дополнения до двух излечена насыщением).
-pub fn div_safe_i32(num: i32, den: i32) -> i32 {
-    unsafe { poler_az_div_safe_i32(num, den) }
-}
 
 /// «Плотность вакуума»: число байтов pack5, где все 5 тритов = ⊙ (код 121).
 /// Тест точного нуля БЕЗ эпсилона — изоляция делает равенство строгим.
@@ -541,79 +346,6 @@ pub fn trit_zero_density(packed: &[u8]) -> f64 {
         return 0.0;
     }
     trit_zero_count(packed) as f64 / packed.len() as f64
-}
-
-/// Кутритная ноль-сумма: [N, D, −(N+D)] — сумма проекций ≡ 0 ПО
-/// ПОСТРОЕНИЮ (A₂-плоскость, фазы 1+ω+ω²=0). asm-ядро: lea+neg.
-pub fn qutrit3(n: i64, d: i64) -> [i64; 3] {
-    let mut out = [0i64; 3];
-    unsafe { poler_az_qutrit3(n, d, out.as_mut_ptr()) };
-    out
-}
-
-// ------------------------- скалярные зеркала -------------------------
-
-/// Скалярное зеркало `poler_az_class` (референс тестов, не-x86_64).
-pub fn classify_scalar(n: i64, d: i64) -> ProjClass {
-    ProjClass::from_code((n == 0) as u64 + 2 * (d == 0) as u64)
-}
-
-/// Скалярное зеркало `poler_az_div_safe_i32`.
-pub fn div_safe_i32_scalar(num: i32, den: i32) -> i32 {
-    if den == 0 {
-        return if num > 0 {
-            i32::MAX
-        } else if num < 0 {
-            -i32::MAX
-        } else {
-            0
-        };
-    }
-    if den == -1 && num == i32::MIN {
-        return i32::MAX;
-    }
-    num / den
-}
-
-/// Скалярное зеркало `poler_az_trit_zero_count`.
-pub fn trit_zero_count_scalar(packed: &[u8]) -> usize {
-    packed.iter().filter(|&&b| b == TRIT5_ZERO_CODE).count()
-}
-
-/// Скалярное зеркало `poler_az_proj_mul` (checked-умножения).
-pub fn proj_mul_scalar(a: &Proj, b: &Proj) -> Proj {
-    match (a.n.checked_mul(b.n), a.d.checked_mul(b.d)) {
-        (Some(n), Some(d)) => Proj { n, d },
-        _ => {
-            // знак произведения (n1/d1)*(n2/d2) — XOR четырёх знаков
-            let negative = (a.n < 0) ^ (a.d < 0) ^ (b.n < 0) ^ (b.d < 0);
-            Proj { n: if negative { POLE_I64_NEG } else { POLE_I64_POS }, d: 0 }
-        }
-    }
-}
-
-/// Скалярное зеркало `poler_az_proj_div` (checked, перекрёстное).
-pub fn proj_div_scalar(a: &Proj, b: &Proj) -> Proj {
-    match (a.n.checked_mul(b.d), a.d.checked_mul(b.n)) {
-        (Some(n), Some(d)) => Proj { n, d },
-        _ => {
-            let negative = (a.n < 0) ^ (a.d < 0) ^ (b.n < 0) ^ (b.d < 0);
-            Proj { n: if negative { POLE_I64_NEG } else { POLE_I64_POS }, d: 0 }
-        }
-    }
-}
-
-/// Скалярное зеркало `poler_az_cmp` (i128-произведения).
-pub fn cmp_canonical_scalar(a: &Proj, b: &Proj) -> std::cmp::Ordering {
-    debug_assert!(a.d > 0 && b.d > 0);
-    let p1 = a.n as i128 * b.d as i128;
-    let p2 = b.n as i128 * a.d as i128;
-    p1.cmp(&p2)
-}
-
-/// Скалярное зеркало `poler_az_qutrit3`.
-pub fn qutrit3_scalar(n: i64, d: i64) -> [i64; 3] {
-    [n, d, -(n + d)]
 }
 
 // ------------------------------ тесты ------------------------------
@@ -1037,42 +769,3 @@ mod tests {
     }
 }
 
-/// Безопасное деление f32 — семантика АЗУ в плавающем домене:
-/// * `den ≠ 0` — обычное деление;
-/// * `den = 0, num ≠ 0` — ПОЛЮС: насыщение ±f32::MAX по знаку числителя
-///   (∞ как предельная точка ℝP¹, без NaN-отравления конвейера);
-/// * `0/0` — КАЛИБРОВКА [0:0] → 0.0 (принятое значение неопределённости).
-///
-/// Применение: нормировки FEP `x/(1+x)` (полюс x=−1), STDP-softmax
-/// (Σ=0 → равномерные награды), любая статистика с делением на сумму.
-pub fn div_safe_f32(num: f32, den: f32) -> f32 {
-    if den != 0.0 {
-        num / den
-    } else if num == 0.0 {
-        0.0
-    } else if num > 0.0 {
-        f32::MAX
-    } else {
-        f32::MIN
-    }
-}
-
-#[cfg(test)]
-mod div_safe_f32_tests {
-    use super::div_safe_f32;
-
-    #[test]
-    fn div_safe_f32_pole_semantics() {
-        assert_eq!(div_safe_f32(1.0, 2.0), 0.5);
-        // полюс: насыщение по знаку числителя (НЕ NaN!)
-        assert_eq!(div_safe_f32(1.0, 0.0), f32::MAX);
-        assert_eq!(div_safe_f32(-2.0, 0.0), f32::MIN);
-        // калибровка 0/0 → 0
-        assert_eq!(div_safe_f32(0.0, 0.0), 0.0);
-        // FEP-нормировка x/(1+x): полюс x = −1 больше не отравляет
-        let norm = |x: f32| div_safe_f32(x, 1.0 + x);
-        assert!(norm(-1.0).is_finite());
-        assert_eq!(norm(1.0), 0.5);
-        assert_eq!(norm(0.0), 0.0);
-    }
-}
